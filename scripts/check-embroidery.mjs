@@ -730,4 +730,71 @@ check(
     );
   },
 );
+check("One unusable object does not discard the rest of the design", () => {
+  const good = makeObject({
+    id: "good",
+    name: "Good",
+    paths: [square(5, 5, 20)],
+    type: "tatami",
+  });
+  // A Column B rail left with a single point: the commonest half-finished
+  // object, and one that fails inside curvePaths before any stitch is emitted.
+  const bad = makeObject({
+    id: "bad",
+    name: "Bad",
+    paths: [
+      [{ x: 5, y: 5 }],
+      [
+        { x: 8, y: 5 },
+        { x: 8, y: 25 },
+      ],
+    ],
+    closed: [false, false],
+    type: "satin-column",
+    columnKind: "B",
+    underlay: false,
+  });
+  const p = project([good, bad]);
+  const plan = generatePlan(p);
+  assert.ok(plan.stitchCount > 0, "the sound object still produced stitches");
+  assert.ok(plan.blocks.some((b) => b.objectId === "good"));
+  assert.ok(
+    !plan.blocks.some((b) => b.objectId === "bad"),
+    "the faulty object contributed no block",
+  );
+  assert.ok(
+    plan.stitches.every((s) => Number.isFinite(s.x) && Number.isFinite(s.y)),
+    "no partial command from the faulty object survived",
+  );
+  const failure = plan.issues.find(
+    (i) => i.level === "error" && i.objectId === "bad",
+  );
+  assert.ok(failure, "the faulty object reported an error issue");
+  assert.match(failure.message, /^Bad: /);
+  // A plan carrying an error issue must still be unexportable.
+  assert.throws(() => exportDST(p, plan));
+});
+check("A design whose objects all fail exports nothing", () => {
+  const bad = makeObject({
+    id: "bad",
+    name: "Bad",
+    paths: [
+      [{ x: 1, y: 1 }],
+      [
+        { x: 4, y: 1 },
+        { x: 4, y: 9 },
+      ],
+    ],
+    closed: [false, false],
+    type: "satin-column",
+    columnKind: "B",
+    underlay: false,
+  });
+  const p = project([bad]);
+  const plan = generatePlan(p);
+  assert.equal(plan.stitchCount, 0);
+  assert.equal(plan.blocks.length, 0);
+  assert.ok(plan.issues.some((i) => i.level === "error"));
+  assert.throws(() => exportDST(p, plan));
+});
 console.log(`${checks} total embroidery checks passed.`);

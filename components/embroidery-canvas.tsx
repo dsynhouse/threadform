@@ -865,13 +865,16 @@ export default function EmbroideryCanvas(props: Props) {
       ctx.drawImage(artworkImage.image, 0, 0, 1, 1);
       ctx.restore();
     }
+    // Index the draft once per frame. A linear scan per object made redraw
+    // cost grow with the product of both lists while dragging.
+    const drafted = new Map(draft.map((d) => [d.id, d]));
     const objects = project.objects
       .filter(
         (o) =>
           (!showColors?.length || showColors.includes(o.color)) &&
           (!isolatedIds?.length || isolatedIds.includes(o.id)),
       )
-      .map((o) => draft.find((d) => d.id === o.id) ?? o);
+      .map((o) => drafted.get(o.id) ?? o);
     const viewVisible = new Set(
       objects.filter((o) => o.visible).map((o) => o.id),
     );

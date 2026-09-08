@@ -18,7 +18,6 @@ Wilcom itself distinguishes native design objects from reconstructed stitch data
 
 Release 0.11 adds a persistent, dimmable original-artwork layer, Convert scroll ownership for short windows, live column footprints, stage-aware Backspace and refined freehand input. See [release verification](qualification/release-0.11.md). Artwork display transforms do not alter stitches, thread assignments or qualification fingerprints.
 
-
 - Canvas uses native non-passive wheel/gesture listeners. Pinch changes canvas zoom at the pointer; two-finger movement pans. Listeners clean up when the canvas unmounts. The playback needle uses a plus crosshair.
 - Five underlay methods: Center Run, Edge Run, Zigzag, Double Zigzag and Tatami. Ordered enabled layers each retain spacing, maximum length, uniform inset and relative angle. They generate actual needle paths before the cover. Non-fitting layers report a warning. Legacy presets remain readable.
 - Maximum satin stitch is an explicit saved parameter from 1 to 12.1 mm, default 7 mm. Long paths split at the selected threshold. It affects parallel Satin, Raised Satin and Columns A/B/C. Format/controller move limits remain separate.

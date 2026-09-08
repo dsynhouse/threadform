@@ -4,12 +4,12 @@ The studio uses the Pinterest v5 API. It can list boards and pins after authoriz
 
 Configure the following **server runtime variables** on the deployed Site:
 
-| Variable | Value |
-|---|---|
-| `PINTEREST_APP_ID` | Your registered Pinterest application ID |
-| `PINTEREST_APP_SECRET` | The matching client secret; mark as secret |
-| `PINTEREST_REDIRECT_URI` | `https://threadform-studio.dsynhouse.chatgpt.site/api/integrations/pinterest/callback` |
-| `INTEGRATION_ENCRYPTION_KEY` | A random 32-byte key, base64 encoded; mark as secret |
+| Variable                     | Value                                                                                  |
+| ---------------------------- | -------------------------------------------------------------------------------------- |
+| `PINTEREST_APP_ID`           | Your registered Pinterest application ID                                               |
+| `PINTEREST_APP_SECRET`       | The matching client secret; mark as secret                                             |
+| `PINTEREST_REDIRECT_URI`     | `https://threadform-studio.dsynhouse.chatgpt.site/api/integrations/pinterest/callback` |
+| `INTEGRATION_ENCRYPTION_KEY` | A random 32-byte key, base64 encoded; mark as secret                                   |
 
 Register that exact redirect URI with Pinterest. Obtain the applicable provider access for the app. Publish the new environment revision, then use Inspiration → Connect Pinterest to grant `boards:read,pins:read`.
 

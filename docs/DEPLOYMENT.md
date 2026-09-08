@@ -42,10 +42,10 @@ Anonymous sign-ups incur real database/storage usage. Before opening a public pr
 
 Add these two values to the hosting environment. For local development, copy `.env.example` to ignored `.env.local`.
 
-| Variable                   | Value                                                     |
-| -------------------------- | --------------------------------------------------------- |
-| `SUPABASE_URL`             | `https://wnjsliqsktxyfmuzcqxx.supabase.co` |
-| `SUPABASE_PUBLISHABLE_KEY` | Supabase publishable key, or legacy anon key              |
+| Variable                   | Value                                        |
+| -------------------------- | -------------------------------------------- |
+| `SUPABASE_URL`             | `https://wnjsliqsktxyfmuzcqxx.supabase.co`   |
+| `SUPABASE_PUBLISHABLE_KEY` | Supabase publishable key, or legacy anon key |
 
 No service-role key is required. The app rejects secret/service-role keys. Session cookies are HttpOnly, Secure in production and SameSite=Lax. Server authorization verifies the user with Supabase rather than trusting cookie contents. Signed upload responses expose only the public key and a bounded upload token. [Supabase server clients](https://supabase.com/docs/guides/auth/server-side/creating-a-client)
 

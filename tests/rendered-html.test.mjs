@@ -25,10 +25,7 @@ test("serves the embroidery studio as a successful HTML document", async () => {
   );
 
   assert.equal(response.status, 200);
-  assert.match(
-    response.headers.get("content-type") ?? "",
-    /^text\/html\b/i,
-  );
+  assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
   const html = await response.text();
   assert.match(html, title);
   assert.doesNotMatch(html, /content="development"/);

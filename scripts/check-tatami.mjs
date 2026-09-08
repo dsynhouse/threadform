@@ -223,6 +223,38 @@ test("Connector settings separate regions without fragmenting internal fill rows
   assert.equal(jumped.jumpCount, 2);
   assert.equal(jumped.trimCount, 1);
 });
+
+test("Extreme tatami and program-split rows reject unbounded allocation before generating points", () => {
+  const { tatamiNeedles } = get("tatami"),
+    { splitPositions } = get("effects");
+  assert.throws(
+    () => tatamiNeedles(0, 1e12, 0, 0, 3, 0.25, 0.5, false),
+    /budget/,
+  );
+  assert.throws(
+    () => tatamiNeedles(1e20, 1e20 + 1e6, 1e20, 0, 3, 0.25, 0.5, false),
+    /precision/,
+  );
+  assert.throws(
+    () => splitPositions(object("split", [rect(0, 0, 20)]), 0, 1e12, 0.2, 0),
+    /budget/,
+  );
+});
+
+test("Contour and island coils reject incomplete interiors instead of silently stopping at 3000 passes", () => {
+  const { specialtyPaths } = get("specialty"),
+    { stitchPrograms } = get("stitch-programs");
+  for (const type of ["contour", "island-coil"]) {
+    const o = object(type, [rect(0, 0, 1300)], { type, spacing: 0.2 });
+    assert.throws(() => {
+      for (const path of type === "contour"
+        ? stitchPrograms(o)
+        : specialtyPaths(o, o.paths)) {
+        assert.ok(path, "Every generated contour must be defined.");
+      }
+    }, /budget/);
+  }
+});
 const coupon = project([
   object("Solid square", [rect(5, 5, 25)], {
     color: "#27423d",

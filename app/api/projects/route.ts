@@ -1,5 +1,7 @@
 import { validateProject } from "@/lib/embroidery/project";
 import { accountProjects } from "@/lib/server/supabase-projects";
+import { sha256 } from "@noble/hashes/sha256";
+import { bytesToHex } from "@noble/hashes/utils";
 import {
   limitWrites,
   database,
@@ -11,6 +13,7 @@ import {
   failure,
   HttpError,
   uuid,
+  pageOffset,
 } from "@/lib/server/http";
 type ProjectRow = {
   id: string;
@@ -29,10 +32,7 @@ export async function GET(request: Request) {
       url = new URL(request.url),
       id = url.searchParams.get("id");
     if (!id) {
-      const offset = Math.max(
-        0,
-        Math.min(10000, Number(url.searchParams.get("offset")) || 0),
-      );
+      const offset = pageOffset(url);
       const rows = await db
         .prepare(
           "SELECT id,name,revision,object_count,updated_at FROM studio_projects WHERE owner=? AND revision>0 ORDER BY updated_at DESC,id LIMIT 50 OFFSET ?",
@@ -137,38 +137,44 @@ export async function POST(request: Request) {
       throw new HttpError(404, "This saved project is unavailable.");
     if (expected >= Number.MAX_SAFE_INTEGER)
       throw new HttpError(400, "Project revision exceeds numeric precision.");
-    const key = `projects/${encodeURIComponent(owner)}/${id}/${saveId}.json`;
-    const retry = existing
-      ? await db
-          .prepare(
-            "SELECT revision FROM studio_revisions WHERE project_id=? AND blob_key=?",
-          )
-          .bind(id, key)
-          .first<{ revision: number }>()
-      : null;
-    if (retry) {
-      const prior = await bucket.get(key);
+    const legacyKey = `projects/${encodeURIComponent(owner)}/${id}/${saveId}.json`;
+    const serialized = JSON.stringify(project);
+    const hash = bytesToHex(sha256(new TextEncoder().encode(serialized)));
+    // A concurrent request must never overwrite a winner's bytes. The save ID
+    // is claimed atomically in D1; the immutable content path lives in R2.
+    const key = `projects/${encodeURIComponent(owner)}/${id}/${saveId}-${hash}.json`;
+    const findRetry = () =>
+      db
+        .prepare(
+          "SELECT revision,blob_key FROM studio_revisions WHERE project_id=? AND (save_id=? OR blob_key=?) AND EXISTS (SELECT 1 FROM studio_projects WHERE id=? AND owner=?)",
+        )
+        .bind(id, saveId, legacyKey, id, owner)
+        .first<{ revision: number; blob_key: string }>();
+    const acknowledge = async (retry: {
+      revision: number;
+      blob_key: string;
+    }) => {
+      const prior = await bucket.get(retry.blob_key);
       if (!prior)
         throw new HttpError(
           503,
           "The saved snapshot could not be verified. Retry this save.",
         );
-      if (
-        JSON.stringify(JSON.parse(await prior.text())) !==
-        JSON.stringify(project)
-      )
+      if (JSON.stringify(JSON.parse(await prior.text())) !== serialized)
         throw new HttpError(
           409,
           "This save identifier was already used for a different snapshot. Save a new copy.",
         );
       return json({ id, revision: retry.revision });
-    }
+    };
+    const retry = existing ? await findRetry() : null;
+    if (retry) return await acknowledge(retry);
     if ((existing?.revision ?? 0) !== expected)
       throw new HttpError(
         409,
         "A newer version was saved elsewhere. Save this design as a copy or open the latest version before continuing.",
       );
-    await bucket.put(key, JSON.stringify(project), {
+    await bucket.put(key, serialized, {
       httpMetadata: { contentType: "application/json" },
     });
     const now = Date.now(),
@@ -185,7 +191,7 @@ export async function POST(request: Request) {
     statements.push(
       db
         .prepare(
-          "UPDATE studio_projects SET name=?,revision=revision+1,blob_key=?,object_count=?,updated_at=? WHERE id=? AND owner=? AND revision=? RETURNING revision",
+          "UPDATE studio_projects SET name=?,revision=revision+1,blob_key=?,object_count=?,updated_at=? WHERE id=? AND owner=? AND revision=? AND NOT EXISTS (SELECT 1 FROM studio_revisions WHERE project_id=? AND save_id=?) RETURNING revision",
         )
         .bind(
           project.name,
@@ -195,18 +201,23 @@ export async function POST(request: Request) {
           id,
           owner,
           expected,
+          id,
+          saveId,
         ),
     );
     statements.push(
       db
         .prepare(
-          "INSERT INTO studio_revisions(project_id,revision,blob_key,created_at) SELECT id,revision,blob_key,? FROM studio_projects WHERE id=? AND owner=? AND blob_key=? ON CONFLICT(project_id,revision) DO NOTHING",
+          "INSERT INTO studio_revisions(project_id,revision,blob_key,created_at,save_id) SELECT id,revision,blob_key,?,? FROM studio_projects WHERE id=? AND owner=? AND blob_key=? ON CONFLICT DO NOTHING",
         )
-        .bind(now, id, owner, key),
+        .bind(now, saveId, id, owner, key),
     );
     const results = await db.batch<{ revision: number }>(statements);
     if (!results[updateIndex].results.length) {
-      await bucket.delete(key);
+      const raced = await findRetry();
+      // Identical retries share the content path. Preserve the committed blob.
+      if (raced?.blob_key !== key) await bucket.delete(key);
+      if (raced) return await acknowledge(raced);
       throw new HttpError(
         409,
         "Another save completed first. Your open design is preserved; save it as a copy.",

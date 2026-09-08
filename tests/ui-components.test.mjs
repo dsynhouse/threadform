@@ -14,7 +14,9 @@ const vite = await createServer({
   configFile: false,
   root,
   resolve: { alias: { "@": root } },
-  server: { middlewareMode: true },
+  server: { middlewareMode: true, hmr: false, ws: false, watch: null },
+  optimizeDeps: { noDiscovery: true },
+  cacheDir: "node_modules/.cache/threadform-ui-components",
 });
 
 after(async () => {
@@ -57,6 +59,20 @@ test("forwards progress semantics to the primitive", async () => {
   assert.match(html, /aria-valuenow="37"/);
   assert.match(html, /aria-valuetext="37%"/);
   assert.match(html, /data-state="loading"/);
+});
+
+test("slider thumbs expose the control label to keyboard and screen reader users", async () => {
+  const { Slider } = await vite.ssrLoadModule("/components/ui/slider.tsx");
+  const html = renderToStaticMarkup(
+    React.createElement(Slider, {
+      defaultValue: [35],
+      "aria-label": "Artwork dimming",
+    }),
+  );
+  const thumb = html.match(/<[^>]+role="slider"[^>]*>/)?.[0];
+  assert.ok(thumb, "Missing interactive slider");
+  assert.match(thumb, /aria-label="Artwork dimming"/);
+  assert.match(thumb, /aria-valuemax="100"/);
 });
 
 test("emits chart themes for the starter's media dark mode", async () => {

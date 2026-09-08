@@ -11,6 +11,7 @@ import {
   uuid,
   textField,
   safeURL,
+  pageOffset,
 } from "@/lib/server/http";
 import { accountReferences } from "@/lib/server/supabase-references";
 type ReferenceRow = {
@@ -45,15 +46,12 @@ export async function GET(request: Request) {
       return new Response(blob.body, {
         headers: {
           "Content-Type": blob.httpMetadata?.contentType ?? "image/png",
-          "Cache-Control": "private, max-age=3600",
+          "Cache-Control": "no-store",
           "X-Content-Type-Options": "nosniff",
         },
       });
     }
-    const offset = Math.max(
-      0,
-      Math.min(10000, Number(url.searchParams.get("offset")) || 0),
-    );
+    const offset = pageOffset(url);
     const result = await db
       .prepare(
         "SELECT id,title,url,notes,tags,palette,image_key,created_at FROM studio_references WHERE owner=? ORDER BY created_at DESC,id LIMIT 50 OFFSET ?",

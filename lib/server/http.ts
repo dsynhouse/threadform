@@ -119,6 +119,18 @@ export function uuid(value: unknown): string {
     throw new HttpError(400, "Invalid record identifier.");
   return value;
 }
+export function pageOffset(url: URL): number {
+  const raw = url.searchParams.get("offset");
+  if (raw === null) return 0;
+  const offset = Number(raw);
+  if (
+    !/^\d+$/.test(raw) ||
+    !Number.isSafeInteger(offset) ||
+    offset > Number.MAX_SAFE_INTEGER - 50
+  )
+    throw new HttpError(400, "Invalid page offset.");
+  return offset;
+}
 export function textField(value: unknown, max: number, fallback = ""): string {
   if (value === undefined) return fallback;
   if (typeof value !== "string" || value.length > max)

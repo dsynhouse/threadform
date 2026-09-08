@@ -10,11 +10,11 @@
 //      CSS, JS chunks or fonts.
 //
 // Copy those assets, then hand off to the real standalone server.
-import { cpSync, existsSync, readFileSync } from "node:fs";
+import { cpSync, existsSync } from "node:fs";
 import { spawn } from "node:child_process";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { parseEnv } from "node:util";
+import { createRequire } from "node:module";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const standalone = join(root, ".next", "standalone");
@@ -36,19 +36,26 @@ for (const [from, to] of [
 
 // The standalone server runs from its own directory, so Next would look for
 // .env files there rather than in the project. Load the project's files here
-// and pass them down, matching Next's own precedence: a real environment
-// variable beats .env.local, which beats .env. Without this, SUPABASE_URL and
-// SUPABASE_PUBLISHABLE_KEY go unseen and the app silently degrades to
-// local-only drafts with /?account=unavailable.
-const fromFiles = {};
-for (const name of [".env", ".env.local"]) {
-  const file = join(root, name);
-  if (!existsSync(file)) continue;
-  Object.assign(fromFiles, parseEnv(readFileSync(file, "utf8")));
-}
+// and pass them down using Next's production precedence and variable expansion.
+// Resolve Next's own dependency so this also works with a nested npm layout.
+const require = createRequire(import.meta.url);
+const { loadEnvConfig } = createRequire(require.resolve("next/package.json"))(
+  "@next/env",
+);
+process.env.NODE_ENV = "production";
+loadEnvConfig(root, false);
 
-spawn(process.execPath, [server], {
+const child = spawn(process.execPath, [server], {
   stdio: "inherit",
   cwd: standalone,
-  env: { ...fromFiles, ...process.env },
-}).on("exit", (code) => process.exit(code ?? 0));
+  env: process.env,
+});
+for (const signal of ["SIGINT", "SIGTERM"])
+  process.on(signal, () => child.kill(signal));
+child.on("error", (error) => {
+  console.error("Could not start the standalone server:", error.message);
+  process.exitCode = 1;
+});
+child.on("exit", (code, signal) =>
+  process.exit(code ?? (signal === "SIGINT" ? 130 : signal ? 143 : 1)),
+);

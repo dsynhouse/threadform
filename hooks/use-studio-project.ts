@@ -18,6 +18,7 @@ import {
   api,
   errorMessage,
   resetStudioSession,
+  ApiError,
 } from "@/components/studio/controls";
 import { uploadArtwork } from "@/lib/client/artwork-storage";
 
@@ -91,6 +92,9 @@ export function useStudioProject() {
     }
   }, []);
   const markDirty = () => {
+    // A corrected validation failure can be saved again. Conflicts and
+    // interrupted writes retain their pending identity until explicitly resolved.
+    if (!pendingSave.current) syncBlocked.current = false;
     dirtyRef.current = true;
     setDirty(true);
   };
@@ -182,7 +186,8 @@ export function useStudioProject() {
         const snapshot = JSON.stringify(request.project);
         const snapshotBytes = new TextEncoder().encode(snapshot).byteLength;
         if (snapshotBytes > 8388608)
-          throw new Error(
+          throw new ApiError(
+            413,
             "This project exceeds online snapshot storage. Download the editable project to keep a full copy.",
           );
         const payload =
@@ -230,12 +235,12 @@ export function useStudioProject() {
           documentGeneration.current === generation &&
           namespace.current === scope
         ) {
-          syncBlocked.current =
-            typeof error === "object" &&
-            error !== null &&
-            "status" in error &&
-            [401, 409].includes(Number(error.status));
+          const status = error instanceof ApiError ? error.status : 0;
+          const invalid = [400, 413, 415, 422].includes(status);
+          if (invalid) pendingSave.current = undefined;
+          syncBlocked.current = invalid || [401, 409].includes(status);
           setSyncError(errorMessage(error));
+          if (invalid) await checkpoint();
         }
         throw error;
       } finally {

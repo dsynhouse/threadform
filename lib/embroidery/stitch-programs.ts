@@ -205,13 +205,17 @@ export function* stitchPrograms(
         Math.max(0.2, object.spacing),
     );
     let previous: Point | null = null;
-    for (let row = 0; row < Math.min(layers + 1, 3000); row++) {
+    for (let row = 0; row <= layers; row++) {
       const paths = offsetPolygons(
         contours,
         -(row + 0.5) * Math.max(0.2, object.spacing),
         object.fillRule,
       );
       if (!paths.length) break;
+      if (row >= 3000)
+        throw new Error(
+          "Contour fill exceeds the path budget. Increase spacing or divide the region; incomplete fills cannot be exported.",
+        );
       for (const path of paths) {
         let start = 0;
         if (previous)

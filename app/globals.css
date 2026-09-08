@@ -78,6 +78,26 @@ body {
   font-family: "Inter", "Segoe UI", Arial, sans-serif;
   font-size: 16px;
 }
+.download-ready {
+  display: grid;
+  gap: 8px;
+  width: min(380px, calc(100vw - 32px));
+  padding: 16px;
+  background: var(--card);
+  color: var(--foreground);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 8px 30px #18203320;
+  overflow-wrap: anywhere;
+}
+.download-ready p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted-foreground);
+}
+.download-ready a {
+  white-space: normal;
+}
 button,
 input,
 select {

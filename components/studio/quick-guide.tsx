@@ -30,7 +30,7 @@ const STEPS = [
     title: "Draw with intention",
     workspace: "studio",
     anchor: "tools",
-    text: "Choose Column A for paired points, B for separate edges, or C for a centreline. Left-click makes corners and right-click makes curves. Corner/Curve buttons also work with touch. Enter finishes; Backspace removes a point.",
+    text: "Column A alternates edge pairs. Column B draws each edge separately, with Enter between edges. Column C draws a baseline, then Enter starts width entry: mark two width points or press Enter for the default. Left-click makes corners, right-click curves. Backspace goes back a point or stage; Enter finishes.",
   },
   {
     title: "Choose the stitch language",

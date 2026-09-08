@@ -2,7 +2,7 @@
 
 A browser embroidery studio for DSYN House: editable vector artwork, manual and automatic digitizing, stitch inspection, optimization, approval PDFs and native DST/PES/JEF/EXP output.
 
-**Release 0.11 is implemented software awaiting live-service and physical-machine qualification.** See [the release checklist and interoperability roadmap](docs/INTEROPERABILITY.md). Algorithm tests do not establish Wilcom object recognition or physical sewing quality.
+**Release 0.12 has passed 188 automated checks and a Chrome workflow audit; live-account and physical-machine qualification remain open.** See [the release checklist and interoperability roadmap](docs/INTEROPERABILITY.md). Algorithm tests do not establish Wilcom object recognition or physical sewing quality.
 
 ## Independent deployment
 
@@ -22,6 +22,19 @@ npm run start:standalone
 ```
 
 The existing Sites deployment remains supported through its separate runtime adapter, D1/R2 bindings, Vite configuration and `npm run build`. Vercel uses `build:vercel`; it does not depend on Sites or a ChatGPT login.
+
+## What changed in 0.12
+
+- Patched framework and tooling advisories; the dependency audit reports zero known vulnerabilities. CI pins action revisions and rejects high/critical dependency advisories.
+- Merged PR #6 and fixed a concurrent guest-save race that could remove the winning snapshot. Retries now claim an atomic save ID and use immutable content-addressed storage.
+- Supabase rejects missing/invalid project versions and non-text names. Rate limits, stale revisions, account outages and invalid payloads now have distinct responses.
+- Invalid snapshots can be corrected and saved again. Browser recovery retries after blocked or denied IndexedDB access; abandoned connections close cleanly.
+- Project and inspiration pagination no longer clamps at offset 10,000. Invalid offsets fail with a clear request error.
+- Extreme tatami/program-split allocations are rejected before exhausting memory. Contour and Island Coil report incomplete interiors instead of silently truncating them.
+- Downloads retain a visible retry link, sliders expose their accessible names, and Column A/B/C help matches the actual input stages.
+- The standalone launcher uses Next.js production environment loading, copies its assets and forwards shutdown signals.
+
+See the [audit and remaining qualification gates](docs/qualification/release-0.12.md) for evidence, scope and known limits.
 
 ## What changed in 0.11
 
@@ -67,7 +80,7 @@ npm run build
 node --test tests/*.test.mjs
 ```
 
-GitHub Actions runs the same gates after repository import. Browser interaction, live Supabase email delivery, real account migration, download completion and physical sew-outs remain distinct qualification gates.
+GitHub Actions runs the same gates on pushes and pull requests. Browser interaction, live Supabase email delivery, real account migration, download completion and physical sew-outs remain distinct qualification gates.
 
 ## Code layout
 

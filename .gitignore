@@ -43,3 +43,6 @@ next-env.d.ts
 /work/
 
 *.tsbuildinfo
+
+# Local Supabase CLI metadata
+/supabase/.temp/

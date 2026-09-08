@@ -1,4 +1,4 @@
-# Wilcom interoperability and release 0.11
+# Wilcom interoperability and release 0.12
 
 Reviewed 8 September 2026. Repository: https://github.com/dsynhouse/threadform
 
@@ -38,6 +38,8 @@ Reshape retains editable source points and Bézier handles, entry/exit controls 
 References: [Column A](https://docs.wilcom.com/embroiderystudio/28/en/OnlineHelp/Digitizing/input/input-20.htm), [Column B](https://docs.wilcom.com/embroiderystudio/28/en/OnlineHelp/Digitizing/input/input-22.htm), [Column C](https://docs.wilcom.com/embroiderystudio/28/en/OnlineHelp/Digitizing/input/input-15.htm), [underlay methods](https://docs.wilcom.com/embroiderystudio/28/en/OnlineHelp/Quality/stabilizing/stabilizing-7.htm), [underlay margins](https://docs.wilcom.com/embroiderystudio/28/en/OnlineHelp/Quality/stabilizing/stabilizing-9.htm), [underlay length](https://docs.wilcom.com/embroiderystudio/28/en/OnlineHelp/Quality/stabilizing/stabilizing-10.htm).
 
 The current inset is uniform. Wilcom's independent side/start/end margins, negative joining margins and chord-gap adaptive running lengths remain planned. A screen hex value is not a physically calibrated thread colour. Use licensed chart data and measurements; official sources include [Madeira shade cards](https://www.madeira.com/embroidery-solutions/service/support/shade-cards) and [AMANN downloads](https://www.amann.com/company/download-center/).
+
+Release 0.12 merges the reliability review and addresses concurrent saves, invalid payloads, account-outage handling, recovery retries, pagination and incomplete large fills. See [the complete audit](qualification/release-0.12.md). These fixes do not add a native EMB writer or establish physical machine qualification.
 
 ## Object-map schema version 1
 

@@ -153,6 +153,17 @@ export function splitPositions(
   const size = o.patternSize ?? 4,
     phase = (((y / size) % 1) + 1) % 1,
     pattern = o.splitPattern ?? "diamond";
+  const firstTile = Math.floor(left / size) - 1,
+    lastTile = Math.ceil(right / size);
+  if (
+    size <= 0 ||
+    !Number.isSafeInteger(firstTile) ||
+    !Number.isSafeInteger(lastTile) ||
+    lastTile - firstTile > 350000
+  )
+    throw new Error(
+      "Program split exceeds the needle-path budget or coordinate precision. Increase pattern size or divide the region.",
+    );
   let shifts: number[];
   switch (pattern) {
     case "brick":
@@ -187,12 +198,12 @@ export function splitPositions(
         }
       break;
   }
+  if ((lastTile - firstTile + 1) * shifts.length > 350000)
+    throw new Error(
+      "Program split exceeds the needle-path budget. Simplify the tile or increase pattern size.",
+    );
   const points = [left, right];
-  for (
-    let tile = Math.floor(left / size) - 1;
-    tile <= Math.ceil(right / size);
-    tile++
-  )
+  for (let tile = firstTile; tile <= lastTile; tile++)
     for (const x of shifts) {
       const p = (tile + x) * size;
       if (p > left + 0.15 && p < right - 0.15) points.push(p);

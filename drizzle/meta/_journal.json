@@ -15,6 +15,13 @@
       "when": 1788778874441,
       "tag": "0001_noisy_mastermind",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1788861532957,
+      "tag": "0002_atomic_guest_retries",
+      "breakpoints": true
     }
   ]
 }

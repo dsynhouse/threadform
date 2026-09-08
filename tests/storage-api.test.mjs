@@ -35,24 +35,31 @@ class Statement {
     return this.all();
   }
 }
+let batchQueue = Promise.resolve();
 const DB = {
   prepare: (query) => new Statement(query),
-  batch: async (statements) => {
-    sql.exec("BEGIN");
-    try {
-      const out = [];
-      for (const statement of statements) out.push(await statement.all());
-      sql.exec("COMMIT");
-      return out;
-    } catch (error) {
-      sql.exec("ROLLBACK");
-      throw error;
-    }
+  batch: (statements) => {
+    const operation = batchQueue.then(async () => {
+      sql.exec("BEGIN");
+      try {
+        const out = [];
+        for (const statement of statements) out.push(await statement.all());
+        sql.exec("COMMIT");
+        return out;
+      } catch (error) {
+        sql.exec("ROLLBACK");
+        throw error;
+      }
+    });
+    batchQueue = operation.catch(() => {});
+    return operation;
   },
 };
 const blobs = new Map();
+let beforePut;
 const STORAGE = {
   put: async (key, value, options) => {
+    if (beforePut) await beforePut();
     blobs.set(key, { value, options });
   },
   get: async (key) => {
@@ -342,4 +349,97 @@ test("guest projects can keep saving after revision 500", async () => {
   });
   assert.equal(result.status, 200);
   assert.equal((await result.json()).revision, 501);
+});
+
+async function simultaneousSaves(projects, separateOwners = false) {
+  const session = await request("/api/session");
+  const cookie = session.headers.get("set-cookie").split(";")[0];
+  const other = separateOwners ? await request("/api/session") : null;
+  const otherCookie = other?.headers.get("set-cookie").split(";")[0];
+  const id = crypto.randomUUID(),
+    saveId = crypto.randomUUID();
+  let arrived = 0,
+    release;
+  const barrier = new Promise((resolve) => {
+    release = resolve;
+  });
+  beforePut = async () => {
+    if (++arrived === 2) release();
+    await barrier;
+  };
+  try {
+    const responses = await Promise.all(
+      projects.map((project, index) =>
+        request("/api/projects", {
+          method: "POST",
+          cookie: index && otherCookie ? otherCookie : cookie,
+          body: { id, saveId, expectedRevision: 0, project },
+        }),
+      ),
+    );
+    return { responses, cookie, otherCookie, id };
+  } finally {
+    beforePut = undefined;
+  }
+}
+test("simultaneous identical retries preserve the committed snapshot", async () => {
+  const { responses, cookie, id } = await simultaneousSaves([project, project]);
+  assert.deepEqual(
+    responses.map((r) => r.status),
+    [200, 200],
+  );
+  const loaded = await request("/api/projects?id=" + id, { cookie });
+  assert.equal(loaded.status, 200);
+  assert.deepEqual((await loaded.json()).project, project);
+  assert.equal(
+    sql
+      .prepare("SELECT count(*) n FROM studio_revisions WHERE project_id=?")
+      .get(id).n,
+    1,
+  );
+});
+test("simultaneous conflicting retries cannot overwrite the winner's bytes", async () => {
+  const alternatives = [project, { ...project, name: "Conflicting payload" }];
+  const { responses, cookie, id } = await simultaneousSaves(alternatives);
+  assert.deepEqual(responses.map((r) => r.status).sort(), [200, 409]);
+  const winner = alternatives[responses.findIndex((r) => r.status === 200)];
+  const loaded = await request("/api/projects?id=" + id, { cookie });
+  assert.equal(loaded.status, 200);
+  assert.deepEqual((await loaded.json()).project, winner);
+});
+test("a racing project identifier cannot acknowledge another owner's save", async () => {
+  const { responses, cookie, otherCookie, id } = await simultaneousSaves(
+    [project, project],
+    true,
+  );
+  assert.deepEqual(responses.map((r) => r.status).sort(), [200, 409]);
+  const cookies = [cookie, otherCookie];
+  for (let index = 0; index < responses.length; index++) {
+    const loaded = await request("/api/projects?id=" + id, {
+      cookie: cookies[index],
+    });
+    assert.equal(loaded.status, responses[index].status === 200 ? 200 : 404);
+  }
+});
+test("project pagination rejects invalid offsets and accepts pages past 10,000", async () => {
+  for (const offset of ["-1", "1.5", "NaN", "Infinity", "9007199254740992"])
+    assert.equal(
+      (await request("/api/projects?offset=" + offset, { cookie: cookieA }))
+        .status,
+      400,
+    );
+  const page = await request("/api/projects?offset=10050", { cookie: cookieA });
+  assert.equal(page.status, 200);
+  assert.deepEqual((await page.json()).projects, []);
+});
+test("reference pagination rejects invalid offsets and does not repeat page 10,000", async () => {
+  assert.equal(
+    (await request("/api/references?offset=1.5", { cookie: cookieA })).status,
+    400,
+  );
+  const page = await request("/api/references?offset=10050", {
+    cookie: cookieA,
+  });
+  assert.equal(page.status, 200);
+  assert.deepEqual((await page.json()).references, []);
 });

@@ -37,9 +37,10 @@ export type ConversionDraft = {
 };
 let connection: Promise<IDBDatabase> | undefined;
 function database(): Promise<IDBDatabase> {
-  if (!connection)
-    connection = new Promise((resolve, reject) => {
+  if (!connection) {
+    const pending = new Promise<IDBDatabase>((resolve, reject) => {
       const request = indexedDB.open("threadform-recovery", 3);
+      let abandoned = false;
       request.onupgradeneeded = () => {
         const db = request.result;
         if (!db.objectStoreNames.contains("artwork"))
@@ -51,6 +52,10 @@ function database(): Promise<IDBDatabase> {
           }
       };
       request.onsuccess = () => {
+        if (abandoned) {
+          request.result.close();
+          return;
+        }
         request.result.onversionchange = () => {
           request.result.close();
           connection = undefined;
@@ -58,16 +63,22 @@ function database(): Promise<IDBDatabase> {
         resolve(request.result);
       };
       request.onerror = () => {
-        connection = undefined;
         reject(request.error);
       };
       request.onblocked = () => {
-        connection = undefined;
+        abandoned = true;
         reject(
           new Error("Close older studio tabs to enable recovery storage."),
         );
       };
     });
+    connection = pending;
+    // A synchronous SecurityError from indexedDB.open must also be retryable
+    // after browser storage is enabled. Do not cache a rejected connection.
+    void pending.catch(() => {
+      if (connection === pending) connection = undefined;
+    });
+  }
   return connection;
 }
 export async function rememberArtwork(

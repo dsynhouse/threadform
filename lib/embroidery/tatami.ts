@@ -119,6 +119,17 @@ export function tatamiNeedles(
   minLength: number,
   reverse: boolean,
 ): number[] {
+  // Validate the allocation before constructing the row. Large freeform
+  // geometry must not lock the worker before the emitter can enforce its cap.
+  if (
+    !Number.isFinite((right - left) / maxLength) ||
+    maxLength <= 0 ||
+    Math.ceil((right - left) / maxLength) > 350000 ||
+    (right > left && left + maxLength === left)
+  )
+    throw new Error(
+      "Tatami row exceeds the needle-path budget or coordinate precision. Increase stitch length or divide the region.",
+    );
   const minimum = Math.min(minLength, maxLength / 3);
   const phase = origin + ((((row * offset) % 1) + 1) % 1) * maxLength;
   const points = [left];

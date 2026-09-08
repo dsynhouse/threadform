@@ -530,8 +530,11 @@ export default function Inspector({
                   </label>
                   {object.type === "satin-column" && (
                     <p className="help-text">
-                      Alternating rail points control stitch direction. Edit the
-                      rails with the node tool. Spans over 7 mm are split.
+                      {object.columnKind === "B"
+                        ? "Column B keeps two independently drawn edges."
+                        : "Column A pairs alternate points on opposite edges."}{" "}
+                      Edit the rails with Reshape. Spans over{" "}
+                      {object.satinMaxLength ?? 7} mm are split.
                     </p>
                   )}
                   {object.type === "manual" && (

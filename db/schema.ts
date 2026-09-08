@@ -4,6 +4,7 @@ import {
   integer,
   index,
   primaryKey,
+  uniqueIndex,
 } from "drizzle-orm/sqlite-core";
 export const projects = sqliteTable(
   "studio_projects",
@@ -27,8 +28,12 @@ export const revisions = sqliteTable(
     revision: integer("revision").notNull(),
     blobKey: text("blob_key").notNull(),
     createdAt: integer("created_at").notNull(),
+    saveId: text("save_id"),
   },
-  (t) => [primaryKey({ columns: [t.projectId, t.revision] })],
+  (t) => [
+    primaryKey({ columns: [t.projectId, t.revision] }),
+    uniqueIndex("revisions_project_save").on(t.projectId, t.saveId),
+  ],
 );
 export const references = sqliteTable(
   "studio_references",

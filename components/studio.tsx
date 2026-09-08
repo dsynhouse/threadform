@@ -121,6 +121,7 @@ import {
   IconButton,
   NumberField,
   download,
+  clearPreparedDownload,
   errorMessage,
   fileName,
 } from "./studio/controls";
@@ -272,7 +273,7 @@ const toolInfo: {
     id: "column-c",
     label: "Column C · F6",
     icon: Spline,
-    hint: "Draw a centreline · Right-click curves · Enter finishes · Set width in Properties",
+    hint: "Draw a baseline · Enter · Mark two width points, or Enter for default width · Enter finishes",
   },
   {
     id: "digitize-run",
@@ -336,7 +337,7 @@ export default function Studio() {
     useStitchPlan(project);
   const measure = measurements(project.units);
   const [workspace, setWorkspace] = useState<Workspace>("studio"),
-    [selected, setSelected] = useState<string[]>(["arc-0-0"]),
+    [selectionIds, setSelected] = useState<string[]>(["arc-0-0"]),
     [view, setView] = useState<CanvasView>("stitches"),
     [tool, setTool] = useState<CanvasTool>("select");
   const [zoom, setZoom] = useState(1),
@@ -401,6 +402,10 @@ export default function Studio() {
     [saveError, setSaveError] = useState("");
   const geometryTask = useGeometryTask<ShapeResult>();
   const fileInput = useRef<HTMLInputElement>(null);
+  const selected = useMemo(() => {
+    const existing = new Set(project.objects.map((object) => object.id));
+    return selectionIds.filter((id) => existing.has(id));
+  }, [project.objects, selectionIds]);
   const chosen = project.objects.filter((o) => selected.includes(o.id)),
     primary = chosen[0],
     unlocked = chosen.filter((o) => !o.locked);
@@ -505,7 +510,7 @@ export default function Studio() {
       fileName(current.current.name) + ".threadform.json",
       "application/json",
     );
-    toast.success("Editable project downloaded.");
+    toast.success("Editable project prepared. Check your browser downloads.");
   }
   async function importFile(file: File) {
     if (file.size > 32 * 1024 * 1024) {
@@ -1136,6 +1141,7 @@ export default function Studio() {
     else if (id === "pattern") setPatternOpen(true);
     else if (id === "commands") setCommandsOpen(true);
   }
+  useEffect(() => clearPreparedDownload, [state.namespace]);
   useEffect(() => {
     const value = new URLSearchParams(window.location.search).get("workspace");
     if (value && Object.hasOwn(workspaceLabels, value)) {
@@ -1334,7 +1340,7 @@ export default function Studio() {
       );
       setExportOpen(false);
       toast.success(
-        `${format.toUpperCase()}, file hash, thread order and editable project exported.`,
+        `${format.toUpperCase()}, file hash, thread order and editable project prepared.`,
       );
     } catch (e) {
       toast.error(errorMessage(e));
@@ -1466,7 +1472,7 @@ export default function Studio() {
                 </span>
                 <span>·</span>
                 <span className="badge">
-                  Studio 0.11 · Qualification pending
+                  Studio 0.12 · Qualification pending
                 </span>
               </div>
             </div>

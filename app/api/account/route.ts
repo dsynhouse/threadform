@@ -1,4 +1,5 @@
 import { supabaseRequest } from "@/lib/server/supabase";
+import { verifiedUser } from "@/lib/server/verified-user";
 import { sessionOwner } from "@/lib/server/session";
 import { env } from "@threadform/runtime";
 import {
@@ -16,12 +17,7 @@ export async function GET(request: Request) {
     const auth = supabaseRequest(request);
     const guest = await sessionOwner(request);
     if (!auth) return json({ configured: false, user: null, namespace: guest });
-    const { data, error } = await auth.client.auth.getUser();
-    if (error && error.name !== "AuthSessionMissingError")
-      throw new HttpError(
-        error.status === 401 || error.status === 400 ? 401 : 503,
-        "Account status could not be verified. Sign in again if the session expired; your draft is preserved.",
-      );
+    const data = { user: await verifiedUser(auth.client) };
     return auth.finish(
       json({
         configured: true,
@@ -50,7 +46,7 @@ export async function POST(request: Request) {
     // Standalone authentication uses Supabase Auth's own rate limits. A D1
     // binding must never be required to sign in on Vercel.
     if (env.DB) await limitWrites(await identity(request));
-    const { data: currentAccount } = await auth.client.auth.getUser();
+    const currentAccount = { user: await verifiedUser(auth.client) };
     const d = await readJSON(request, 8192),
       action = textField(d.action, 30),
       email = textField(d.email, 254),
@@ -93,8 +89,7 @@ export async function POST(request: Request) {
     else if (action === "logout")
       result = await auth.client.auth.signOut({ scope: "local" });
     else if (action === "password") {
-      const { data } = await auth.client.auth.getUser();
-      if (!data.user)
+      if (!currentAccount.user)
         throw new HttpError(
           401,
           "Open the password reset link in your email first.",

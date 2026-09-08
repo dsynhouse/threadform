@@ -1,4 +1,5 @@
 import { supabaseRequest, supabaseConfig } from "@/lib/server/supabase";
+import { verifiedUser } from "@/lib/server/verified-user";
 import { assetRecord, ARTWORK_BUCKET } from "@/lib/server/assets";
 import {
   sameOrigin,
@@ -10,16 +11,17 @@ import {
   textField,
 } from "@/lib/server/http";
 export async function POST(request: Request) {
-  const auth = supabaseRequest(request);
+  let auth: ReturnType<typeof supabaseRequest> = null;
   try {
     sameOrigin(request);
+    auth = supabaseRequest(request);
     if (!auth)
       throw new HttpError(
         503,
         "Cloud artwork storage is not connected yet. The local conversion draft remains available.",
       );
-    const { data, error } = await auth.client.auth.getUser();
-    if (error || !data.user)
+    const data = { user: await verifiedUser(auth.client) };
+    if (!data.user)
       throw new HttpError(
         401,
         "Sign in to upload original artwork to your account.",
@@ -117,12 +119,13 @@ export async function POST(request: Request) {
   }
 }
 export async function GET(request: Request) {
-  const auth = supabaseRequest(request);
+  let auth: ReturnType<typeof supabaseRequest> = null;
   try {
+    auth = supabaseRequest(request);
     if (!auth)
       throw new HttpError(503, "Cloud artwork storage is not connected.");
-    const { data, error } = await auth.client.auth.getUser();
-    if (error || !data.user)
+    const data = { user: await verifiedUser(auth.client) };
+    if (!data.user)
       throw new HttpError(401, "Sign in to open your original artwork.");
     const row = await assetRecord(
       auth.client,

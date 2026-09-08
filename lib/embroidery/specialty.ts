@@ -32,9 +32,13 @@ export function* specialtyPaths(
     const layers: Point[][][] = [];
     let work = 0;
     // Inset from the original at every level: no cumulative offset error.
-    for (let i = 0; i < 3000; i++) {
+    for (let i = 0; ; i++) {
       const rings = offsetPolygons(original, -(i + 0.5) * spacing, "nonzero");
       if (!rings.length) break;
+      if (i >= 3000)
+        throw new Error(
+          "Island coil exceeds the contour budget. Increase spacing or divide the region; incomplete coils cannot be exported.",
+        );
       work += rings.reduce((s, p) => s + p.length, 0);
       if (work > 160000)
         throw new Error(

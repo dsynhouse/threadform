@@ -1,4 +1,5 @@
 import { supabaseRequest } from "./supabase";
+import { verifiedUser } from "./verified-user";
 import { ARTWORK_BUCKET } from "./assets";
 import {
   sameOrigin,
@@ -9,6 +10,7 @@ import {
   uuid,
   textField,
   safeURL,
+  pageOffset,
 } from "./http";
 
 /** Authenticated and anonymous Supabase users both own private inspiration boards. */
@@ -18,11 +20,9 @@ export async function accountReferences(
   const auth = supabaseRequest(request);
   if (!auth) return null;
   try {
-    const { data, error } = await auth.client.auth.getUser();
-    if (error && error.name !== "AuthSessionMissingError")
-      throw new HttpError(401, "Sign in again to open your inspiration board.");
-    if (!data.user) return null;
-    const owner = data.user.id,
+    const user = await verifiedUser(auth.client);
+    if (!user) return null;
+    const owner = user.id,
       url = new URL(request.url);
     if (request.method === "GET") {
       const image = url.searchParams.get("image");
@@ -51,10 +51,7 @@ export async function accountReferences(
           }),
         );
       }
-      const offset = Math.max(
-        0,
-        Math.floor(Number(url.searchParams.get("offset")) || 0),
-      );
+      const offset = pageOffset(url);
       const rows = await auth.client
         .from("threadform_references")
         .select("id,title,url,notes,tags,palette,image_path,created_at")

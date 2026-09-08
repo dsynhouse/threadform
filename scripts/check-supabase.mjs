@@ -218,5 +218,21 @@ await test("Supabase inspiration boards are private to their owner", async () =>
     0,
   );
 });
+await test("Save RPC rejects missing, null, string and unsupported project versions", async () => {
+  await login(a);
+  for (const version of [undefined, null, "1", 2]) {
+    const invalid = { ...design, version };
+    await assert.rejects(save(501, crypto.randomUUID(), invalid));
+  }
+});
+await test("Save RPC rejects non-text names and preserves revision on invalid input", async () => {
+  for (const name of [123, {}, [], null])
+    await assert.rejects(save(501, crypto.randomUUID(), { ...design, name }));
+  assert.equal(
+    (await db.query("select revision from public.threadform_projects")).rows[0]
+      .revision,
+    501,
+  );
+});
 await db.close();
 console.log(`${passed} PostgreSQL account isolation checks passed.`);

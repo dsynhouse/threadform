@@ -1,5 +1,14 @@
 import { supabaseRequest } from "./supabase";
-import { json, readJSON, sameOrigin, uuid, HttpError, failure } from "./http";
+import { verifiedUser } from "./verified-user";
+import {
+  json,
+  readJSON,
+  sameOrigin,
+  uuid,
+  HttpError,
+  failure,
+  pageOffset,
+} from "./http";
 import { validateProject } from "@/lib/embroidery/project";
 import { projectSnapshot } from "./assets";
 import { projectDelivery } from "./project-delivery";
@@ -9,14 +18,9 @@ export async function accountProjects(
   const auth = supabaseRequest(request);
   if (!auth) return null;
   try {
-    const { data, error } = await auth.client.auth.getUser();
-    if (error && error.name !== "AuthSessionMissingError")
-      throw new HttpError(
-        401,
-        "Your account session has expired. Sign in again before saving.",
-      );
-    if (!data.user) return null;
-    const owner = data.user.id,
+    const user = await verifiedUser(auth.client);
+    if (!user) return null;
+    const owner = user.id,
       url = new URL(request.url),
       id = url.searchParams.get("id");
     if (request.method === "POST") {
@@ -34,7 +38,8 @@ export async function accountProjects(
       if (
         typeof expected !== "number" ||
         !Number.isSafeInteger(expected) ||
-        expected < 0
+        expected < 0 ||
+        expected >= 2147483647
       )
         throw new HttpError(400, "Invalid project revision.");
       let project;
@@ -68,10 +73,23 @@ export async function accountProjects(
           );
         if (saveError.code === "42501")
           throw new HttpError(404, "This project is unavailable.");
-        if (saveError.code === "P0001")
+        if (saveError.code === "23505")
           throw new HttpError(
             409,
+            "This save identifier was used for another snapshot. Save a copy.",
+          );
+        if (
+          saveError.code === "P0001" &&
+          saveError.message === "Save rate exceeded"
+        )
+          throw new HttpError(
+            429,
             "Too many saves in a short time. Wait a minute, then retry the same save.",
+          );
+        if (["22023", "23514", "P0001"].includes(saveError.code))
+          throw new HttpError(
+            400,
+            "The saved project payload is invalid or exceeds snapshot storage. Download a local copy.",
           );
         throw new HttpError(
           503,
@@ -81,13 +99,7 @@ export async function accountProjects(
       return auth.finish(json(saved));
     }
     if (!id) {
-      const offset = Math.max(
-        0,
-        Math.min(
-          10000,
-          Math.floor(Number(url.searchParams.get("offset")) || 0),
-        ),
-      );
+      const offset = pageOffset(url);
       const { data: projects, error } = await auth.client
         .from("threadform_projects")
         .select("id,name,revision,object_count,updated_at")

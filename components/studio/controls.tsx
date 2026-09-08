@@ -266,6 +266,15 @@ export function NumberField({
     </label>
   );
 }
+let preparedDownloadURL: string | undefined;
+function releasePreparedDownload() {
+  if (preparedDownloadURL) URL.revokeObjectURL(preparedDownloadURL);
+  preparedDownloadURL = undefined;
+}
+export function clearPreparedDownload() {
+  releasePreparedDownload();
+  toast.dismiss("prepared-download");
+}
 export function download(
   data: Uint8Array | string,
   name: string,
@@ -275,8 +284,10 @@ export function download(
     [typeof data === "string" ? data : new Uint8Array(data)],
     { type },
   );
+  clearPreparedDownload();
   const url = URL.createObjectURL(blob),
     a = document.createElement("a");
+  preparedDownloadURL = url;
   a.href = url;
   a.download = name;
   a.hidden = true;
@@ -285,7 +296,27 @@ export function download(
   document.body.append(a);
   a.click();
   a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 30000);
+  // Browsers may block an automatic click after an asynchronous export. Keep
+  // one real, user-clickable link until dismissal, replacement or account change.
+  toast.custom(
+    () => (
+      <div className="download-ready" role="status">
+        <strong>Your file is ready</strong>
+        <p>If the download did not start, use this link.</p>
+        <a className="button small" href={url} download={name}>
+          Download {name}
+        </a>
+        <button className="text-button" onClick={clearPreparedDownload}>
+          Dismiss file
+        </button>
+      </div>
+    ),
+    {
+      id: "prepared-download",
+      duration: Infinity,
+      onDismiss: releasePreparedDownload,
+    },
+  );
 }
 export const fileName = (name: string) =>
   name.replace(/[^a-zA-Z0-9_-]+/g, "-").slice(0, 60) || "embroidery";

@@ -24,6 +24,7 @@ jobs:
       - run: python -m pip install -r tests/requirements-formats.txt
       - run: npm run check:types
       - run: npm run lint
+      - run: npm run check:format
       - run: npm run check:all
       - run: npm run build:vercel
       - run: npm run build

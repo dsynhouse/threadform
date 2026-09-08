@@ -5,6 +5,13 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
+    ignore:
+      # typescript-eslint (via eslint-config-next) does not support the TS 7 API,
+      # so `npm run lint` fails on any TS 7 bump regardless of our own code.
+      # Re-enable once typescript-eslint ships TS >=7.1 support.
+      # https://github.com/typescript-eslint/typescript-eslint/issues/10940
+      - dependency-name: typescript
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: github-actions
     directory: /
     schedule:

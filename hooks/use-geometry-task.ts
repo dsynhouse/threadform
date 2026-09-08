@@ -59,7 +59,7 @@ export function useGeometryTask<T>() {
         active.current = { worker, timer, reject };
         worker.onmessage = (event) => {
           finish();
-          if(event.data.ok) resolve(event.data.result as T);
+          if (event.data.ok) resolve(event.data.result as T);
           else reject(new Error(event.data.error));
         };
         worker.onerror = () => {

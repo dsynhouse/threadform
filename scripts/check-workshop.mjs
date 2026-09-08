@@ -321,7 +321,10 @@ check(
     assert.ok(
       passes.every((o) => o.groupId === passes[0].groupId && o.forceTrim),
     );
-    assert.deepEqual(passes.map((o) => o.pauseAfter), [true, true, false]);
+    assert.deepEqual(
+      passes.map((o) => o.pauseAfter),
+      [true, true, false],
+    );
     const plan = generatePlan({ ...r.project, trimDistance: 5 });
     assert.ok(plan.trimCount >= 3);
     const svg = exportCutSVG(r.project, [passes[0].id], 0);

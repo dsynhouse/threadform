@@ -168,19 +168,17 @@ export async function accountReferences(
           throw new HttpError(503, "Reference image could not be uploaded.");
       }
     }
-    const inserted = await auth.client
-      .from("threadform_references")
-      .insert({
-        id,
-        owner,
-        title,
-        url: link,
-        notes,
-        tags: d.tags,
-        palette: d.palette,
-        image_path: imagePath,
-        created_at: Date.now(),
-      });
+    const inserted = await auth.client.from("threadform_references").insert({
+      id,
+      owner,
+      title,
+      url: link,
+      notes,
+      tags: d.tags,
+      palette: d.palette,
+      image_path: imagePath,
+      created_at: Date.now(),
+    });
     if (inserted.error)
       throw new HttpError(
         503,

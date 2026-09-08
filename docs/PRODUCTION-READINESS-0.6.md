@@ -25,11 +25,11 @@ Guest designing remains public without a ChatGPT login. Existing guest project a
 
 The earlier scanline traversal alternated between every span in a row. Holes and disconnected islands therefore created repeated jumps, trims and tie stitches. The new traversal groups one-to-one neighbouring spans into connected bands and stitches each band back and forth before changing regions. Boundary travel follows the contour when a direct connection would cut a concavity. Row penetrations share one coordinate lattice across both sewing directions, with a configurable interior minimum and bounded edge stitches. The engine retains tiny geometric corners; zero movement is removed only after rounding to machine coordinates.
 
-| Controlled 30 mm test, 0.4 mm adjacent rows, no underlay/pull | Previous trims | Revised trims | Coverage |
-|---|---:|---:|---|
-| Solid square | 1 | 1 | Every row covered |
-| Ring, 14 mm square hole | 36 | 2 | Both sides covered; hole retained |
-| Two separate squares | 76 | 2 | Each island covered; no sewn bridge |
+| Controlled 30 mm test, 0.4 mm adjacent rows, no underlay/pull | Previous trims | Revised trims | Coverage                            |
+| ------------------------------------------------------------- | -------------: | ------------: | ----------------------------------- |
+| Solid square                                                  |              1 |             1 | Every row covered                   |
+| Ring, 14 mm square hole                                       |             36 |             2 | Both sides covered; hole retained   |
+| Two separate squares                                          |             76 |             2 | Each island covered; no sewn bridge |
 
 These results reproduce and correct fragmentation in our engine. They do **not** establish the cause of the user's particular Wilcom display without the affected file, Wilcom version, Open options and screenshot. No Wilcom installation was available for a direct import test.
 

@@ -3,7 +3,8 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Threadform — Embroidery Studio",
-  description: "Turn artwork into editable embroidery. Plan satin and tatami stitches, inspect the sewing sequence, and export machine files.",
+  description:
+    "Turn artwork into editable embroidery. Plan satin and tatami stitches, inspect the sewing sequence, and export machine files.",
   icons: {
     icon: "/favicon.svg",
     shortcut: "/favicon.svg",

@@ -8,7 +8,7 @@ import {
   type StitchPlan,
 } from "./types";
 
-/** A column stores two equally sampled rails; all other geometry stores contours. */
+/** Evaluate editable column nodes into paired rails before outlining their footprint. */
 export function outlinePaths(object: EmbroideryObject): Point[][] {
   object = { ...object, paths: curvePaths(object) };
   if (object.type === "column-c")

@@ -8,6 +8,7 @@ import {
   type ThreadShade,
 } from "./types";
 import { transformObject } from "./operations";
+import { validateArtworkLayer, resizeArtworkLayer } from "./artwork-layer";
 import { GEOMETRY_BUDGET } from "./complexity";
 import { validateTraceOptions } from "./trace-options";
 export function validateThread(raw: unknown): ThreadShade {
@@ -277,6 +278,8 @@ export function validateProject(data: unknown): Project {
   const sewOuts =
     p.sewOuts === undefined ? undefined : validateSewOuts(p.sewOuts);
   const extra: Partial<Project> = {};
+  if (p.artworkLayer !== undefined)
+    extra.artworkLayer = validateArtworkLayer(p.artworkLayer);
   if (p.artwork !== undefined) {
     const a = p.artwork as Record<string, unknown>;
     if (
@@ -440,6 +443,15 @@ export function resizeProject(
     ...p,
     width,
     height,
+    ...(p.artworkLayer
+      ? {
+          artworkLayer: resizeArtworkLayer(
+            p.artworkLayer,
+            width / p.width,
+            height / p.height,
+          ),
+        }
+      : {}),
     startPoint: p.startPoint ? scalePoint(p.startPoint) : undefined,
     endPoint: p.endPoint ? scalePoint(p.endPoint) : undefined,
     objects: p.objects.map((o) => transformObject(o, scalePoint)),

@@ -39,9 +39,11 @@ let connection: Promise<IDBDatabase> | undefined;
 function database(): Promise<IDBDatabase> {
   if (!connection)
     connection = new Promise((resolve, reject) => {
-      const request = indexedDB.open("threadform-recovery", 2);
+      const request = indexedDB.open("threadform-recovery", 3);
       request.onupgradeneeded = () => {
         const db = request.result;
+        if (!db.objectStoreNames.contains("artwork"))
+          db.createObjectStore("artwork", { keyPath: "key" });
         for (const name of ["drafts", "conversions"])
           if (!db.objectStoreNames.contains(name)) {
             const store = db.createObjectStore(name, { keyPath: "id" });
@@ -67,6 +69,51 @@ function database(): Promise<IDBDatabase> {
       };
     });
   return connection;
+}
+export async function rememberArtwork(
+  namespace: string,
+  id: string,
+  file: File,
+): Promise<void> {
+  const db = await database();
+  await new Promise<void>((resolve, reject) => {
+    const tx = db.transaction("artwork", "readwrite");
+    tx.objectStore("artwork").put({
+      key: JSON.stringify([namespace, id]),
+      namespace,
+      id,
+      file,
+      name: file.name,
+    });
+    tx.oncomplete = () => resolve();
+    tx.onabort = tx.onerror = () =>
+      reject(
+        tx.error ?? new Error("Artwork could not be saved on this device."),
+      );
+  });
+}
+export async function cachedArtwork(
+  namespace: string,
+  id: string,
+): Promise<File | null> {
+  const db = await database();
+  return new Promise((resolve, reject) => {
+    const request = db
+      .transaction("artwork")
+      .objectStore("artwork")
+      .get(JSON.stringify([namespace, id]));
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => {
+      const entry = request.result;
+      resolve(
+        entry?.namespace === namespace &&
+          entry.id === id &&
+          entry.file instanceof Blob
+          ? new File([entry.file], entry.name, { type: entry.file.type })
+          : null,
+      );
+    };
+  });
 }
 export async function writeConversion(draft: ConversionDraft): Promise<void> {
   const db = await database();

@@ -1,4 +1,4 @@
-# Wilcom interoperability and release 0.10
+# Wilcom interoperability and release 0.11
 
 Reviewed 8 September 2026. Repository: https://github.com/dsynhouse/threadform
 
@@ -15,6 +15,9 @@ Reviewed 8 September 2026. Repository: https://github.com/dsynhouse/threadform
 Wilcom itself distinguishes native design objects from reconstructed stitch data. Its [object-recognition guide](https://docs.wilcom.com/embroiderystudio/e4/en/MainHelp/Production/convert/Object_recognition.htm) describes the loss of source-object fidelity and unsupported patterns. The [API portal](https://developer.wilcom.com/) describes licensed services; detailed integration documentation is account-controlled at [the API guide](https://apiguide.wilcom.com/). Public examples do not establish an arbitrary-outline-to-EMB contract. Do not implement a guessed endpoint or claim a successful EMB conversion from a file extension.
 
 ## Executed improvements
+
+Release 0.11 adds a persistent, dimmable original-artwork layer, Convert scroll ownership for short windows, live column footprints, stage-aware Backspace and refined freehand input. See [release verification](qualification/release-0.11.md). Artwork display transforms do not alter stitches, thread assignments or qualification fingerprints.
+
 
 - Canvas uses native non-passive wheel/gesture listeners. Pinch changes canvas zoom at the pointer; two-finger movement pans. Listeners clean up when the canvas unmounts. The playback needle uses a plus crosshair.
 - Five underlay methods: Center Run, Edge Run, Zigzag, Double Zigzag and Tatami. Ordered enabled layers each retain spacing, maximum length, uniform inset and relative angle. They generate actual needle paths before the cover. Non-fitting layers report a warning. Legacy presets remain readable.

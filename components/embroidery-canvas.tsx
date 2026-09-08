@@ -1,5 +1,14 @@
 "use client";
 import { bindViewportNavigation } from "@/lib/embroidery/viewport";
+import { useArtworkImage } from "@/hooks/use-artwork-image";
+import { artworkCorners } from "@/lib/embroidery/artwork-layer";
+import {
+  undoDigitizingDraft,
+  snapDrawingPoint,
+  appendSketchSamples,
+  sketchPath,
+  columnDraftOutline,
+} from "@/lib/embroidery/drawing";
 import {
   useEffect,
   useEffectEvent,
@@ -75,6 +84,7 @@ export type ViewRequest = {
   factor?: number;
 };
 type Props = {
+  namespace?: string;
   viewRequest?: ViewRequest;
   onTool?: (tool: CanvasTool) => void;
   runType?: StitchType;
@@ -186,6 +196,12 @@ export default function EmbroideryCanvas(props: Props) {
     transform = useRef({ scale: 1, x: 0, y: 0, fit: 1, cx: 0, cy: 0 });
   const previousView = useRef<{ zoom: number; pan: Point } | null>(null);
   const [curvePoint, setCurvePoint] = useState(false);
+  const [hover, setHover] = useState<Point | null>(null);
+  const [sketchSmoothing, setSketchSmoothing] = useState(0.4);
+  const artworkImage = useArtworkImage(
+    props.namespace ?? "",
+    project.artworkLayer,
+  );
   const [reshapeMode, setReshapeMode] = useState<
     "nodes" | "entry" | "exit" | "angle"
   >("nodes");
@@ -277,9 +293,12 @@ export default function EmbroideryCanvas(props: Props) {
         maxY: (project.height + project.hoopHeight) / 2,
       };
     if (mode === "design")
-      box = bounds(
-        project.objects.filter((o) => o.visible).flatMap(outlinePaths),
-      );
+      box = bounds([
+        ...project.objects.filter((o) => o.visible).flatMap(outlinePaths),
+        ...(project.artworkLayer?.visible
+          ? [artworkCorners(project.artworkLayer)]
+          : []),
+      ]);
     let nextZoom = zoom;
     if (mode === "in") nextZoom = zoom * 2;
     if (mode === "out") nextZoom = zoom / 2;
@@ -361,6 +380,27 @@ export default function EmbroideryCanvas(props: Props) {
     columnBaseRef.current = columnBase;
     gestureRef.current = gesture;
   }, [draft, pen, gesture, firstRail, columnBase]);
+  function updatePen(
+    next:
+      | DigitizingPoint[]
+      | ((points: DigitizingPoint[]) => DigitizingPoint[]),
+  ) {
+    const points = typeof next === "function" ? next(penRef.current) : next;
+    penRef.current = points;
+    setPen(points);
+  }
+  function undoPoint() {
+    const next = undoDigitizingDraft({
+      pen: penRef.current,
+      firstRail: firstRailRef.current,
+      columnBase: columnBaseRef.current,
+    });
+    updatePen(next.pen);
+    firstRailRef.current = next.firstRail;
+    columnBaseRef.current = next.columnBase;
+    setFirstRail(next.firstRail);
+    setColumnBase(next.columnBase);
+  }
   useEffect(() => {
     const node = host.current;
     if (!node) return;
@@ -375,8 +415,16 @@ export default function EmbroideryCanvas(props: Props) {
   /* eslint-disable react-hooks/set-state-in-effect */
   useLayoutEffect(() => {
     setPan({ x: 0, y: 0 });
+    penRef.current = [];
+    firstRailRef.current = [];
+    columnBaseRef.current = [];
+    draftRef.current = [];
+    drag.current = null;
     setPen([]);
     setFirstRail([]);
+    setColumnBase([]);
+    setDraft([]);
+    setHover(null);
     setGesture(null);
   }, [reset]);
   useLayoutEffect(() => {
@@ -386,10 +434,17 @@ export default function EmbroideryCanvas(props: Props) {
         continuation.current.object.id !== selected[0])
     )
       continuation.current = null;
-    setPen(toolTransfer.current ?? []);
+    penRef.current = toolTransfer.current ?? [];
+    setPen(penRef.current);
     toolTransfer.current = null;
     setFirstRail([]);
     setColumnBase([]);
+    firstRailRef.current = [];
+    columnBaseRef.current = [];
+    drag.current = null;
+    draftRef.current = [];
+    setDraft([]);
+    setHover(null);
     setGesture(null);
     nodeRef.current = null;
     nodeSelection.current = [];
@@ -424,7 +479,7 @@ export default function EmbroideryCanvas(props: Props) {
         : paths[0];
     props.onTool?.(nextTool);
     if (tool === nextTool) {
-      setPen(toolTransfer.current);
+      updatePen(toolTransfer.current);
       toolTransfer.current = null;
     }
   }
@@ -445,7 +500,7 @@ export default function EmbroideryCanvas(props: Props) {
         if (!firstRailRef.current.length) {
           firstRailRef.current = points;
           setFirstRail(points);
-          setPen(continuation.current?.paths[1] ?? []);
+          updatePen(continuation.current?.paths[1] ?? []);
           toast.info(
             "First edge captured. Draw the opposite edge, then press Enter.",
           );
@@ -465,7 +520,7 @@ export default function EmbroideryCanvas(props: Props) {
           if (points.length < 2) return;
           columnBaseRef.current = points;
           setColumnBase(points);
-          setPen([]);
+          updatePen([]);
           setCurvePoint(false);
           toast.info(
             "Centreline ready. Mark two width points, or press Enter to keep the default width. Right-click width points to set an offset.",
@@ -521,7 +576,7 @@ export default function EmbroideryCanvas(props: Props) {
           closed: [true],
         });
       else return;
-      setPen([]);
+      updatePen([]);
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Unable to finish this path.",
@@ -579,6 +634,7 @@ export default function EmbroideryCanvas(props: Props) {
       }
       if (event.code === "Space" && penTools.includes(tool)) {
         event.preventDefault();
+        if (tool === "manual" || tool === "angle") return;
         if (
           tool === "satin-column" ||
           (tool === "column-b" && firstRailRef.current.length)
@@ -590,7 +646,7 @@ export default function EmbroideryCanvas(props: Props) {
             : penRef.current;
           props.onTool?.(tool === "column-c" ? "digitize-run" : "column-c");
         } else if (penRef.current.length) {
-          setPen((p) =>
+          updatePen((p) =>
             p.map((v, i) =>
               i === p.length - 1 ? { ...v, curve: !v.curve } : v,
             ),
@@ -604,12 +660,13 @@ export default function EmbroideryCanvas(props: Props) {
         if (
           !penRef.current.length &&
           !firstRailRef.current.length &&
+          !columnBaseRef.current.length &&
           !drag.current
         ) {
           props.onTool?.("select");
           onSelect([]);
         }
-        setPen([]);
+        updatePen([]);
         setFirstRail([]);
         setColumnBase([]);
         columnBaseRef.current = [];
@@ -620,7 +677,7 @@ export default function EmbroideryCanvas(props: Props) {
       }
       if (event.key === "Backspace" && penTools.includes(tool)) {
         event.preventDefault();
-        setPen((current) => current.slice(0, -1));
+        undoPoint();
         return;
       }
       if (event.key === "Enter" && penTools.includes(tool)) {
@@ -690,9 +747,12 @@ export default function EmbroideryCanvas(props: Props) {
     ctx.fillStyle = "#edf0f4";
     ctx.fillRect(0, 0, w, h);
     const freeform = project.workspaceMode === "freeform";
-    const art = bounds(
-      project.objects.filter((o) => o.visible).flatMap((o) => o.paths),
-    );
+    const art = bounds([
+      ...project.objects.filter((o) => o.visible).flatMap((o) => o.paths),
+      ...(project.artworkLayer?.visible
+        ? [artworkCorners(project.artworkLayer)]
+        : []),
+    ]);
     const frame = freeform
       ? {
           minX: Math.min(0, art.minX),
@@ -796,6 +856,14 @@ export default function EmbroideryCanvas(props: Props) {
         project.width / 2,
         (project.height + project.hoopHeight) / 2 + 9 / scale,
       );
+    }
+    const imageLayer = project.artworkLayer;
+    if (imageLayer?.visible && artworkImage.image) {
+      ctx.save();
+      ctx.globalAlpha = imageLayer.dimmed ? imageLayer.opacity : 1;
+      ctx.transform(...imageLayer.transform);
+      ctx.drawImage(artworkImage.image, 0, 0, 1, 1);
+      ctx.restore();
     }
     const objects = project.objects
       .filter(
@@ -1134,6 +1202,27 @@ export default function EmbroideryCanvas(props: Props) {
       }
       ctx.setLineDash([]);
     }
+    const columnOutline = columnDraftOutline(
+      tool,
+      { pen, firstRail, columnBase },
+      hover,
+      curvePoint,
+      continuation.current?.object.lineWidth ?? 3,
+      (continuation.current?.object.columnOffset ?? 0) *
+        (continuation.current?.fromStart ? -1 : 1),
+    );
+    for (const outline of columnOutline) {
+      if (!outline.length) continue;
+      ctx.beginPath();
+      ctx.moveTo(outline[0].x, outline[0].y);
+      for (const p of outline.slice(1)) ctx.lineTo(p.x, p.y);
+      ctx.closePath();
+      ctx.fillStyle = "#2554ec0b";
+      ctx.fill();
+      ctx.strokeStyle = "#2554ec66";
+      ctx.lineWidth = 0.8 / scale;
+      ctx.stroke();
+    }
     if (tool === "satin-column") {
       ctx.strokeStyle = "#2554ec55";
       ctx.lineWidth = 0.7 / scale;
@@ -1176,6 +1265,72 @@ export default function EmbroideryCanvas(props: Props) {
           ctx.fill();
         }
       }
+    }
+    if (hover && penTools.includes(tool)) {
+      const active =
+        tool === "satin-column"
+          ? pen.filter((_, i) => i % 2 === pen.length % 2)
+          : pen;
+      if (active.length) {
+        const guide = [
+          ...active,
+          {
+            ...hover,
+            curve: tool !== "manual" && (curvePoint || tool === "curve"),
+          },
+        ];
+        const plotted =
+          tool === "manual" || tool === "angle" || columnBase.length
+            ? guide
+            : digitizeCurve(guide);
+        ctx.beginPath();
+        ctx.moveTo(plotted[0].x, plotted[0].y);
+        for (const p of plotted.slice(1)) ctx.lineTo(p.x, p.y);
+        ctx.strokeStyle = "#2554ec99";
+        ctx.lineWidth = 1 / scale;
+        ctx.setLineDash([4 / scale, 3 / scale]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+      if (tool === "column-b" && firstRail.length && !pen.length) {
+        const near =
+          distance(hover, firstRail[0]) < distance(hover, firstRail.at(-1)!)
+            ? firstRail[0]
+            : firstRail.at(-1)!;
+        ctx.beginPath();
+        ctx.moveTo(near.x, near.y);
+        ctx.lineTo(hover.x, hover.y);
+        ctx.strokeStyle = "#2554ec88";
+        ctx.lineWidth = 1 / scale;
+        ctx.setLineDash([4 / scale, 3 / scale]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+      if (tool === "satin-column" && pen.length % 2) {
+        ctx.beginPath();
+        ctx.moveTo(pen.at(-1)!.x, pen.at(-1)!.y);
+        ctx.lineTo(hover.x, hover.y);
+        ctx.strokeStyle = "#2554ec66";
+        ctx.lineWidth = 1 / scale;
+        ctx.stroke();
+      }
+      if (columnBase.length && pen.length === 1) {
+        ctx.font = `${12 / scale}px Arial`;
+        ctx.fillStyle = "#2554ec";
+        ctx.fillText(
+          `${label(distance(pen[0], hover))} ${units} width`,
+          hover.x + 8 / scale,
+          hover.y - 8 / scale,
+        );
+      }
+      ctx.beginPath();
+      ctx.moveTo(hover.x - 5 / scale, hover.y);
+      ctx.lineTo(hover.x + 5 / scale, hover.y);
+      ctx.moveTo(hover.x, hover.y - 5 / scale);
+      ctx.lineTo(hover.x, hover.y + 5 / scale);
+      ctx.strokeStyle = "#2554ec";
+      ctx.lineWidth = 1 / scale;
+      ctx.stroke();
     }
     ctx.restore();
     ctx.fillStyle = "#f7f9fc";
@@ -1245,17 +1400,23 @@ export default function EmbroideryCanvas(props: Props) {
     functionSymbols,
     vectorBackdrop,
     isolatedIds,
+    hover,
+    curvePoint,
+    artworkImage.image,
   ]);
-  const world = (event: React.PointerEvent | React.MouseEvent) => {
+  const world = (event: {
+    clientX: number;
+    clientY: number;
+    altKey: boolean;
+    shiftKey: boolean;
+  }) => {
     const r = canvas.current!.getBoundingClientRect(),
       t = transform.current;
     const point = {
       x: (event.clientX - r.left - t.x) / t.scale,
       y: (event.clientY - r.top - t.y) / t.scale,
     };
-    let result = snap
-      ? { x: Math.round(point.x), y: Math.round(point.y) }
-      : point;
+    let result = snapDrawingPoint(point, snap, event.altKey);
     const drawing = drag.current;
     if (
       event.shiftKey &&
@@ -1352,7 +1513,17 @@ export default function EmbroideryCanvas(props: Props) {
           ) {
             event.preventDefault();
             const p = world(event);
-            setPen((current) => [...current, { ...p, curve: true }]);
+            if (
+              tool === "column-c" &&
+              columnBaseRef.current.length &&
+              penRef.current.length >= 2
+            ) {
+              toast.info(
+                "Width points are ready. Press Enter, or Backspace to correct them.",
+              );
+              return;
+            }
+            updatePen((current) => [...current, { ...p, curve: true }]);
             return;
           }
           if (event.button === 2 && tool === "nodes") {
@@ -1376,12 +1547,25 @@ export default function EmbroideryCanvas(props: Props) {
               const a =
                 (Math.atan2(p.y - pen[0].y, p.x - pen[0].x) * 180) / Math.PI;
               onAngle((a + 180) % 180);
-              setPen([]);
-            } else setPen([p]);
+              updatePen([]);
+            } else updatePen([p]);
             return;
           }
           if (penTools.includes(tool)) {
-            setPen((current) => [...current, { ...p, curve: curvePoint }]);
+            if (
+              tool === "column-c" &&
+              columnBaseRef.current.length &&
+              penRef.current.length >= 2
+            ) {
+              toast.info(
+                "Width points are ready. Press Enter, or Backspace to correct them.",
+              );
+              return;
+            }
+            updatePen((current) => [
+              ...current,
+              { ...p, curve: tool !== "manual" && curvePoint },
+            ]);
             return;
           }
           if (tool === "eyedropper") {
@@ -1412,7 +1596,7 @@ export default function EmbroideryCanvas(props: Props) {
           }
           if (tool === "freehand" || tool === "erase") {
             drag.current = { kind: tool, start: p, pan };
-            setPen([p]);
+            updatePen([p]);
             return;
           }
           if (tool === "select") {
@@ -1565,7 +1749,10 @@ export default function EmbroideryCanvas(props: Props) {
         }}
         onPointerMove={(event) => {
           const d = drag.current;
-          if (!d) return;
+          if (!d) {
+            if (penTools.includes(tool)) setHover(world(event));
+            return;
+          }
           if (d.kind === "pan") {
             setPan({
               x: d.pan.x + event.clientX - d.start.x,
@@ -1589,14 +1776,14 @@ export default function EmbroideryCanvas(props: Props) {
             return;
           }
           if (d.kind === "freehand" || d.kind === "erase") {
-            const points = penRef.current;
-            if (
-              distance(points[points.length - 1], p) > 0.2 &&
-              points.length < 12000
-            ) {
-              penRef.current = [...points, p];
-              setPen(penRef.current);
-            }
+            const samples = event.nativeEvent.getCoalescedEvents?.() ?? [];
+            updatePen(
+              appendSketchSamples(
+                penRef.current,
+                [...samples.map(world), p],
+                transform.current.scale,
+              ),
+            );
             return;
           }
           if (d.kind === "resize") {
@@ -1717,18 +1904,25 @@ export default function EmbroideryCanvas(props: Props) {
             onCut?.("knife", [d.start, end]);
           if (d.kind === "erase" && penRef.current.length > 1) {
             onCut?.("erase", simplify([...penRef.current, end], 0.1));
-            setPen([]);
+            updatePen([]);
           }
-          if (d.kind === "freehand" && penRef.current.length > 1) {
-            onAdd({
-              name: "Freehand run",
-              paths: [simplify(penRef.current, 0.12)],
-              closed: [false],
-              type: "run",
-              underlay: false,
-              pull: 0,
-            });
-            setPen([]);
+          if (d.kind === "freehand") {
+            const path = sketchPath(
+              penRef.current,
+              end,
+              sketchSmoothing,
+              transform.current.scale,
+            );
+            if (path.length > 1)
+              onAdd({
+                name: "Freehand run",
+                paths: [path],
+                closed: [false],
+                type: props.runType ?? "run",
+                underlay: false,
+                pull: 0,
+              });
+            updatePen([]);
           }
           if (d.kind === "zoom" && distance(d.start, end) > 0.2)
             camera("box", bounds([[d.start, end]]));
@@ -1775,11 +1969,14 @@ export default function EmbroideryCanvas(props: Props) {
           drag.current = null;
         }}
         onPointerCancel={() => {
+          draftRef.current = [];
+          penRef.current = [];
           setDraft([]);
-          setPen([]);
+          updatePen([]);
           setGesture(null);
           drag.current = null;
         }}
+        onPointerLeave={() => setHover(null)}
         onDoubleClick={(event) => {
           if (penTools.includes(tool) && tool !== "angle") {
             const points = [...penRef.current];
@@ -1796,6 +1993,26 @@ export default function EmbroideryCanvas(props: Props) {
           insertAt(world(event));
         }}
       />
+      {project.artworkLayer?.visible && artworkImage.error && (
+        <div className="canvas-artwork-status" role="status">
+          {artworkImage.error}
+        </div>
+      )}
+      {tool === "freehand" && (
+        <div className="digitize-prompt sketch-options">
+          <label htmlFor="sketch-smoothing">Sketch smoothing</label>
+          <input
+            id="sketch-smoothing"
+            type="range"
+            min="0"
+            max="100"
+            value={sketchSmoothing * 100}
+            onChange={(e) => setSketchSmoothing(Number(e.target.value) / 100)}
+          />
+          <span>{Math.round(sketchSmoothing * 100)}%</span>
+          <small>0 keeps sampled points · Alt bypasses snap</small>
+        </div>
+      )}
       {tool === "nodes" && (
         <div className="reshape-toolbar" aria-label="Reshape controls">
           {(
@@ -1873,6 +2090,7 @@ export default function EmbroideryCanvas(props: Props) {
           <button
             className={curvePoint ? "active" : ""}
             aria-pressed={curvePoint}
+            disabled={tool === "manual" || tool === "angle"}
             onClick={() => setCurvePoint(true)}
           >
             Curve
@@ -1911,8 +2129,8 @@ export default function EmbroideryCanvas(props: Props) {
             </button>
           )}
           <button
-            onClick={() => setPen((p) => p.slice(0, -1))}
-            disabled={!pen.length}
+            onClick={undoPoint}
+            disabled={!pen.length && !firstRail.length && !columnBase.length}
           >
             Undo point
           </button>

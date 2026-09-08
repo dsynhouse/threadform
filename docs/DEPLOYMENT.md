@@ -1,6 +1,6 @@
 # Supabase and independent deployment
 
-Prepared 8 September 2026. The supplied GitHub destination is https://github.com/dsynhouse/threadform. Supabase is connected to the workspace, but its project-management actions have not loaded in this session. No live Supabase migration or Vercel deployment is claimed. The Next.js production build has been exercised locally; provider activation remains a separate gate.
+Prepared 8 September 2026. The supplied GitHub destination is https://github.com/dsynhouse/threadform. Supabase and Vercel are connected to the workspace, but their authenticated account actions have not loaded in this session. No Vercel/Supabase CLI credentials are present. The selected Supabase project is `wnjsliqsktxyfmuzcqxx`; its API URL is prefilled in `.env.example`, but its publishable key has not been provided. No live Supabase migration or Vercel deployment is claimed. The Next.js production build has been exercised locally; provider activation remains a separate gate.
 
 ## Runtime choice
 
@@ -12,9 +12,9 @@ Prepared 8 September 2026. The supplied GitHub destination is https://github.com
 
 Vercel supports Node 24 for builds and functions. The repository specifies `24.x`. The editor's stitch and tracing workers run in the browser. Python is a test dependency only. [Vercel Node versions](https://vercel.com/docs/functions/runtimes/node-js/node-js-versions)
 
-## 1. Select and prepare Supabase
+## 1. Prepare the selected Supabase project
 
-Use a project controlled by the app owner. Apply the three SQL files in `supabase/migrations/` in filename order. If the 7 September migration is already recorded as applied, apply only the two new 8 September migrations. Use Supabase's migration tooling or SQL editor; do not rerun the initial table-creation migration over existing tables.
+Use the selected [Threadform Supabase project](https://supabase.com/dashboard/project/wnjsliqsktxyfmuzcqxx). Apply the three SQL files in `supabase/migrations/` in filename order. If the 7 September migration is already recorded as applied, apply only the two new 8 September migrations. Use Supabase's migration tooling or SQL editor; do not rerun the initial table-creation migration over existing tables.
 
 The migrations create private projects, immutable revisions, a last-workspace record, artwork metadata, reference boards and the `threadform-artwork` private bucket. Every account table has owner-based RLS; the save transaction checks `auth.uid()`, expected revision and save identifier. It retains a 40-save/minute rate limit and 8 MiB snapshot budget while removing the old 400-object, 200-project and 500-revision quotas.
 
@@ -44,7 +44,7 @@ Add these two values to the hosting environment. For local development, copy `.e
 
 | Variable                   | Value                                                     |
 | -------------------------- | --------------------------------------------------------- |
-| `SUPABASE_URL`             | Project API origin, such as `https://PROJECT.supabase.co` |
+| `SUPABASE_URL`             | `https://wnjsliqsktxyfmuzcqxx.supabase.co` |
 | `SUPABASE_PUBLISHABLE_KEY` | Supabase publishable key, or legacy anon key              |
 
 No service-role key is required. The app rejects secret/service-role keys. Session cookies are HttpOnly, Secure in production and SameSite=Lax. Server authorization verifies the user with Supabase rather than trusting cookie contents. Signed upload responses expose only the public key and a bounded upload token. [Supabase server clients](https://supabase.com/docs/guides/auth/server-side/creating-a-client)
@@ -55,9 +55,13 @@ Small projects use the normal JSON API. Larger writes upload to the private buck
 
 The user selected the existing public repository [dsynhouse/threadform](https://github.com/dsynhouse/threadform). Native GitHub access confirms push permission. Upload the complete reviewed source, including the lockfile, `supabase/`, `public/`, `vendor/`, scripts and workflows. Exclude `.env.local`, `node_modules`, `.next`, `dist`, local database state and credentials; these are already ignored. The repository includes the Sites runtime adapter for continuity, but the Vercel build is independent.
 
-In Vercel, import that repository, choose Next.js and Node 24, then set both Supabase environment variables for the intended deployment environments. `vercel.json` uses `npm ci` and `npm run build:vercel`. Finish Supabase callback configuration for the assigned domain before inviting users. Use an isolated Supabase project for untrusted preview branches; do not share production data with every preview.
+Open [Vercel New Project](https://vercel.com/new) and import the existing `dsynhouse/threadform` repository, choose Next.js and Node 24, then set both Supabase environment variables for the intended deployment environments. Keep the production branch `main`. Once the Git integration is active, pushes to `main` update the stable production domain and other branches get preview URLs. Do not clone a second repository for this app: continued updates belong to the original repository. [Vercel GitHub integration](https://vercel.com/docs/git/vercel-for-github) `vercel.json` uses `npm ci` and `npm run build:vercel`. Finish Supabase callback configuration for the assigned domain before inviting users. Use an isolated Supabase project for untrusted preview branches; do not share production data with every preview.
 
-GitHub Actions verifies algorithms, SQL isolation, TypeScript, lint and both build targets. GitHub-hosted execution itself remains unverified until repository import. Workflow action references follow the official [checkout](https://github.com/actions/checkout), [setup-node](https://github.com/actions/setup-node) and [setup-python](https://github.com/actions/setup-python) usage. Before a controlled production release, pin reviewed action commit SHAs and enable branch protection.
+GitHub Actions verifies algorithms, SQL isolation, TypeScript, lint and both build targets. GitHub-hosted execution itself remains a separate verification gate. Workflow action references follow the official [checkout](https://github.com/actions/checkout), [setup-node](https://github.com/actions/setup-node) and [setup-python](https://github.com/actions/setup-python) usage. Before a controlled production release, pin reviewed action commit SHAs and enable branch protection.
+
+The user-supplied project reference is an identifier, not an API key. Obtain the **publishable** key from the project's API Keys settings. The application checks for an actual public key and will not claim online saving from the URL alone. [Supabase keys](https://supabase.com/docs/guides/getting-started/api-keys)
+
+The 2026 Supabase changelog was reviewed: this repo uses Node 24 and TypeScript 5.9, and the migrations explicitly grant intended table/function privileges rather than relying on automatic Data API exposure. Hosted Supabase still needs its real schema, Auth and Storage acceptance checks. [Supabase changelog](https://supabase.com/changelog)
 
 ## 4. Activation acceptance checklist
 

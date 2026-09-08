@@ -87,6 +87,7 @@ import { MotifBrowser, PatternLab } from "./studio/creative-tools";
 import StudioMenu, { type MenuAction } from "./studio/menu";
 import Inspector from "./studio/inspector";
 import Converter from "./studio/converter";
+import ArtworkLayerControls from "./studio/artwork-layer";
 import Inspiration from "./studio/inspiration";
 import Analysis from "./studio/analysis";
 import Production from "./studio/production";
@@ -452,7 +453,7 @@ export default function Studio() {
       objects: [...p.objects, object],
     });
     setSelected([object.id]);
-    setTool("select");
+    // Keep the digitizing tool active for the next object; Escape returns to Select.
   };
   const openNow = (
     next: Project,
@@ -1344,6 +1345,7 @@ export default function Studio() {
       <TooltipProvider delayDuration={250}>
         <div
           className="studio"
+          data-workspace={workspace}
           aria-busy={!state.ready}
           onDragOver={(e) => {
             if (e.dataTransfer.types.includes("Files")) e.preventDefault();
@@ -1464,7 +1466,7 @@ export default function Studio() {
                 </span>
                 <span>·</span>
                 <span className="badge">
-                  Studio 0.10 · Qualification pending
+                  Studio 0.11 · Qualification pending
                 </span>
               </div>
             </div>
@@ -1567,6 +1569,17 @@ export default function Studio() {
                       onChange={(e) => setObjectFilter(e.target.value)}
                     />
                   </label>
+                  <ArtworkLayerControls
+                    key={`${state.namespace}:${reset}`}
+                    project={project}
+                    namespace={state.namespace}
+                    onChange={(update) =>
+                      safeCommit({
+                        ...current.current,
+                        artworkLayer: update(current.current.artworkLayer),
+                      })
+                    }
+                  />
                   <div className="object-group">
                     <span className="eyebrow">Sewing order</span>
                     <span className="muted" style={{ fontSize: 12 }}>
@@ -1805,6 +1818,7 @@ export default function Studio() {
                   </div>
                   <div className="canvas-surface">
                     <EmbroideryCanvas
+                      namespace={state.namespace}
                       project={project}
                       plan={plan ?? previewPlan}
                       selected={selected}
@@ -2122,7 +2136,13 @@ export default function Studio() {
               </main>
             </>
           )}
-          <div className="workspace-page" hidden={workspace !== "convert"}>
+          <div
+            className="workspace-page"
+            hidden={workspace !== "convert"}
+            role="region"
+            aria-label="Artwork conversion"
+            tabIndex={0}
+          >
             {state.namespace && (
               <Converter
                 key={state.namespace}

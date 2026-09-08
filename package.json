@@ -26,7 +26,7 @@
     "check:workflow": "node scripts/check-workflow.mjs",
     "build:vercel": "next build --webpack",
     "dev:standalone": "next dev",
-    "start:standalone": "next start",
+    "start:standalone": "node scripts/start-standalone.mjs",
     "check:transfers": "node scripts/check-transfers.mjs",
     "check:all": "node scripts/check-all.mjs",
     "check:interop": "node scripts/check-interop.mjs"

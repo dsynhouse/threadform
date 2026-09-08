@@ -1,0 +1,418 @@
+[
+  {
+    "type": "raised-satin",
+    "solid": {
+      "jumps": 3,
+      "trims": 3,
+      "needles": 947
+    },
+    "hole": {
+      "jumps": 79,
+      "trims": 79,
+      "needles": 1251
+    }
+  },
+  {
+    "type": "island-coil",
+    "solid": {
+      "jumps": 1,
+      "trims": 1,
+      "needles": 615
+    },
+    "hole": {
+      "jumps": 18,
+      "trims": 18,
+      "needles": 734
+    }
+  },
+  {
+    "type": "square-fill",
+    "solid": {
+      "jumps": 32,
+      "trims": 1,
+      "needles": 665
+    },
+    "hole": {
+      "jumps": 58,
+      "trims": 27,
+      "needles": 717
+    }
+  },
+  {
+    "type": "double-square",
+    "solid": {
+      "jumps": 64,
+      "trims": 2,
+      "needles": 1330
+    },
+    "hole": {
+      "jumps": 115,
+      "trims": 53,
+      "needles": 1432
+    }
+  },
+  {
+    "type": "half-cross",
+    "solid": {
+      "jumps": 72,
+      "trims": 72,
+      "needles": 637
+    },
+    "hole": {
+      "jumps": 65,
+      "trims": 65,
+      "needles": 559
+    }
+  },
+  {
+    "type": "quarter-cross",
+    "solid": {
+      "jumps": 1,
+      "trims": 1,
+      "needles": 394
+    },
+    "hole": {
+      "jumps": 6,
+      "trims": 6,
+      "needles": 352
+    }
+  },
+  {
+    "type": "petite-cross",
+    "solid": {
+      "jumps": 26,
+      "trims": 1,
+      "needles": 2505
+    },
+    "hole": {
+      "jumps": 41,
+      "trims": 6,
+      "needles": 2135
+    }
+  },
+  {
+    "type": "double",
+    "solid": {
+      "jumps": 1,
+      "trims": 1,
+      "needles": 23
+    },
+    "hole": {
+      "jumps": 1,
+      "trims": 1,
+      "needles": 23
+    }
+  },
+  {
+    "type": "stem",
+    "solid": {
+      "jumps": 1,
+      "trims": 1,
+      "needles": 32
+    },
+    "hole": {
+      "jumps": 1,
+      "trims": 1,
+      "needles": 32
+    }
+  },
+  {
+    "type": "chain",
+    "solid": {
+      "jumps": 1,
+      "trims": 1,
+      "needles": 184
+    },
+    "hole": {
+      "jumps": 1,
+      "trims": 1,
+      "needles": 184
+    }
+  },
+  {
+    "type": "candlewick",
+    "solid": {
+      "jumps": 1,
+      "trims": 1,
+      "needles": 84
+    },
+    "hole": {
+      "jumps": 1,
+      "trims": 1,
+      "needles": 84
+    }
+  },
+  {
+    "type": "coil-run",
+    "solid": {
+      "jumps": 1,
+      "trims": 1,
+      "needles": 159
+    },
+    "hole": {
+      "jumps": 1,
+      "trims": 1,
+      "needles": 159
+    }
+  },
+  {
+    "type": "motif-run",
+    "solid": {
+      "jumps": 5,
+      "trims": 5,
+      "needles": 57
+    },
+    "hole": {
+      "jumps": 5,
+      "trims": 5,
+      "needles": 57
+    }
+  },
+  {
+    "type": "column-c",
+    "solid": {
+      "jumps": 1,
+      "trims": 1,
+      "needles": 146
+    },
+    "hole": {
+      "jumps": 1,
+      "trims": 1,
+      "needles": 146
+    }
+  },
+  {
+    "type": "program-split",
+    "solid": {
+      "jumps": 1,
+      "trims": 1,
+      "needles": 1044
+    },
+    "hole": {
+      "jumps": 27,
+      "trims": 27,
+      "needles": 1034
+    }
+  },
+  {
+    "type": "spiral",
+    "solid": {
+      "jumps": 51,
+      "trims": 51,
+      "needles": 5414
+    },
+    "hole": {
+      "jumps": 69,
+      "trims": 59,
+      "needles": 4496
+    }
+  },
+  {
+    "type": "ripple",
+    "solid": {
+      "jumps": 50,
+      "trims": 50,
+      "needles": 5376
+    },
+    "hole": {
+      "jumps": 71,
+      "trims": 60,
+      "needles": 4545
+    }
+  },
+  {
+    "type": "meander",
+    "solid": {
+      "jumps": 13,
+      "trims": 4,
+      "needles": 1284
+    },
+    "hole": {
+      "jumps": 21,
+      "trims": 11,
+      "needles": 1108
+    }
+  },
+  {
+    "type": "coil-fill",
+    "solid": {
+      "jumps": 24,
+      "trims": 18,
+      "needles": 894
+    },
+    "hole": {
+      "jumps": 31,
+      "trims": 21,
+      "needles": 785
+    }
+  },
+  {
+    "type": "contour",
+    "solid": {
+      "jumps": 1,
+      "trims": 1,
+      "needles": 615
+    },
+    "hole": {
+      "jumps": 21,
+      "trims": 21,
+      "needles": 743
+    }
+  },
+  {
+    "type": "tatami",
+    "solid": {
+      "jumps": 1,
+      "trims": 1,
+      "needles": 650
+    },
+    "hole": {
+      "jumps": 1,
+      "trims": 1,
+      "needles": 621
+    }
+  },
+  {
+    "type": "satin",
+    "solid": {
+      "jumps": 1,
+      "trims": 1,
+      "needles": 319
+    },
+    "hole": {
+      "jumps": 27,
+      "trims": 27,
+      "needles": 423
+    }
+  },
+  {
+    "type": "satin-column",
+    "solid": {
+      "jumps": 1,
+      "trims": 1,
+      "needles": 105
+    },
+    "hole": {
+      "jumps": 1,
+      "trims": 1,
+      "needles": 105
+    }
+  },
+  {
+    "type": "run",
+    "solid": {
+      "jumps": 1,
+      "trims": 1,
+      "needles": 14
+    },
+    "hole": {
+      "jumps": 1,
+      "trims": 1,
+      "needles": 14
+    }
+  },
+  {
+    "type": "triple",
+    "solid": {
+      "jumps": 1,
+      "trims": 1,
+      "needles": 32
+    },
+    "hole": {
+      "jumps": 1,
+      "trims": 1,
+      "needles": 32
+    }
+  },
+  {
+    "type": "back",
+    "solid": {
+      "jumps": 1,
+      "trims": 1,
+      "needles": 22
+    },
+    "hole": {
+      "jumps": 1,
+      "trims": 1,
+      "needles": 22
+    }
+  },
+  {
+    "type": "zigzag",
+    "solid": {
+      "jumps": 1,
+      "trims": 1,
+      "needles": 71
+    },
+    "hole": {
+      "jumps": 1,
+      "trims": 1,
+      "needles": 71
+    }
+  },
+  {
+    "type": "blanket",
+    "solid": {
+      "jumps": 1,
+      "trims": 1,
+      "needles": 205
+    },
+    "hole": {
+      "jumps": 1,
+      "trims": 1,
+      "needles": 205
+    }
+  },
+  {
+    "type": "cross",
+    "solid": {
+      "jumps": 79,
+      "trims": 67,
+      "needles": 894
+    },
+    "hole": {
+      "jumps": 77,
+      "trims": 60,
+      "needles": 789
+    }
+  },
+  {
+    "type": "motif",
+    "solid": {
+      "jumps": 36,
+      "trims": 36,
+      "needles": 324
+    },
+    "hole": {
+      "jumps": 36,
+      "trims": 32,
+      "needles": 298
+    }
+  },
+  {
+    "type": "wave",
+    "solid": {
+      "jumps": 29,
+      "trims": 6,
+      "needles": 4801
+    },
+    "hole": {
+      "jumps": 66,
+      "trims": 29,
+      "needles": 4144
+    }
+  },
+  {
+    "type": "manual",
+    "solid": {
+      "jumps": 1,
+      "trims": 1,
+      "needles": 10
+    },
+    "hole": {
+      "jumps": 1,
+      "trims": 1,
+      "needles": 10
+    }
+  }
+]

@@ -1,0 +1,41 @@
+# Threadform 0.5: detailed digitizing and a keyboard-first workshop
+
+This update extends the existing public studio without a ChatGPT login requirement. It is an original embroidery editor and remains a preview pending professional digitizing comparison and physical machine qualification.
+
+## Implemented changes
+
+| Area | Behavior | Practical limits |
+| --- | --- | --- |
+| Keyboard mapping | 96 active bindings in a central registry supply dispatch, menu hints, command search and searchable shortcut help. Wilcom-style O/H/P, F3–F12, runs, column input, satin/tatami assignment, sequencing, travel, print, selection, transforms and view controls are mapped. Ctrl also accepts Command. | Browser/OS-reserved chords cannot be guaranteed. The help lists native operations that are not implemented; unsupported functions are not silently assigned to unrelated tools. |
+| Stitch directory | 32 distinct generators. Adds raised satin, Island Coil, Square, Double Square, half, quarter and petite crosses. All methods preview actual generated needle paths. | Decorative coil/chain/square patterns use ordinary lockstitch movement. They do not encode chenille, moss, sequin, cording or cutter hardware commands. |
+| Raised satin | Two to five actual passes, with physical row spacing and bounded spans. Layer changes invalidate a prior sew-out fingerprint. | Layering increases density; material, needle, stabilizer and tension need a sew-out. No fabric deformation simulation. |
+| Cross-stitch chart | Paint a 24 × 24 chart, sample artwork, set millimetre grid size, choose full/half/quarter/petite crosses, English/Danish order and top leg. Undo chart strokes before adding editable objects. Arrow keys move, Space paints and Delete erases. | Fixed chart dimensions in this release; use several charts or filled geometry for larger arrangements. Screen sampling is geometric, not a photograph recognition model. |
+| Auto-digitizing review | Detect candidate narrow regions; infer paired satin rails only when the reconstructed outline differs by at most 2.5% area. Retain holes and branched regions in tatami, separate disconnected regions, preserve locks and paired columns. Display a decision for every region. | Geometric rules, not semantic artwork recognition. Detail flags require human judgement. Curve primitives remain sampled editable points. |
+| Bitmap refinement | Perceptual palette reduction, shallow-corner smoothing, exact pixel-mask comparison after contour refinement, low-contrast neighbour speck merging and high-contrast detail preservation. | Preservation compares pixel centres after resampling and palette assignment. It does not restore detail missing from the input or undo quantization. Maximum 2048-pixel longest edge; centreline mode has separate limits. |
+| Detail comparison | Pan and zoom bitmap/vector overlay, bitmap only or vectors only; adjustable opacity and highlighted boundaries. | A geometric comparison, not a fabric preview. |
+| Colour merging | CIEDE2000 is the default similarity measure; optional ΔE76. Protect touching/overlapping colour regions and exact locks. Preview the explicit mapping before applying. Manual merges remain available. | Touching protection conservatively uses bounds. Screen colour is not calibrated physical thread matching. |
+| Help and layout | Nine-step quick start, searchable shortcuts, contextual hover/focus help, visible draft completion controls, more readable settings, consistent editable form fields. | Cross-browser, tablet and touch qualification remains open. |
+
+## Research decisions
+
+Wilcom's [published keyboard reference](https://productblog.wilcom.com/wp-content/uploads/2020/05/Masterclass1-Shortcuts.pdf) is the mapping baseline, cross-checked against [zoom/pan documentation](https://docs.wilcom.com/embroiderystudio/e4/en/MainHelp/Basics/view/Zoom_pan_designs.htm) and [reshape guidance](https://wilcom.com/resources/blog/how-to-reshape-objects-in-your-embroidery-design). Native-only commands and browser-reserved chords are explicitly identified in the in-app guide.
+
+The [raised-satin documentation](https://docs.wilcom.com/be-embroiderystudio/27/en/OnlineHelp2/Digitizing/stitches/stitches-12.htm) informed the layered narrow-column controls. The [Chenille supplement](https://docs.wilcom.com/embroiderystudio/27/en/downloads/ChenilleSupplement.pdf) distinguishes Square, Double Square and Island Coil patterns from the specialized mechanism that produces real chenille. Threadform implements its own lockstitch path versions and describes that boundary in the stitch directory. [Wilcom's cross-stitch guide](https://docs.wilcom.com/embroiderystudio/27/en/downloads/XSDSGNED.pdf) informed grid size, cell variants and leg sequencing.
+
+[Ink/Stitch satin tools](https://inkstitch.org/docs/satin-tools/), [satin columns](https://inkstitch.org/docs/stitches/satin-column/) and [routing documentation](https://inkstitch.org/tutorials/routing/) reinforce the need to inspect rails and routing. Threadform's rail inference and generators are original implementations; GPL source is not incorporated.
+
+[Potrace's algorithm paper](https://potrace.sourceforge.net/potrace.pdf) separates contour extraction, polygon approximation and curve refinement. Threadform follows a staged tracing design with its own pixel-mask gate; Potrace is not bundled. CIEDE2000 follows the published formula and is checked against numeric reference pairs from [Sharma, Wu and Dalal's supplementary resources](https://hajim.rochester.edu/ece/sites/gsharma/ciede2000/), with an original implementation.
+
+## Engineering controls
+
+- Pure domain algorithms are separate from React; tracing, geometry edits, stitch planning and PDFs run in bounded, cancellable workers.
+- Auto-digitizing and optimizer drafts retain their base project and settings signature; an obsolete preview cannot be applied.
+- Physical millimetres, finite coordinates, method settings, integer layer/repeat counts, object counts and point counts are validated centrally.
+- Changing a screen colour clears a stale physical-thread assignment. Engine 0.5 and all new stitch-affecting settings participate in sew-out fingerprints.
+- UUID generation has a cryptographically secure fallback for HTTP development previews where `crypto.randomUUID` is unavailable.
+- Production cookies always remain Secure, HttpOnly and host-prefixed. Only the development build on an explicit local HTTP hostname uses a separate local cookie.
+- Download links attach to the document and retain their blob long enough for browser download handoff.
+
+## Verification
+
+See [RELEASE-QUALIFICATION.md](RELEASE-QUALIFICATION.md) for automated and browser checks, remaining test limits and physical qualification requirements. Version 0.4's [method and machine-format directory](DIGITIZING-0.4.md) remains useful background, with this release superseding its method count and colour-optimization defaults.

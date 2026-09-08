@@ -1,0 +1,482 @@
+[
+  {
+    "type": "raised-satin",
+    "solid": {
+      "sections": 1,
+      "jumps": 1,
+      "trims": 1,
+      "stitches": 1491
+    },
+    "hole": {
+      "sections": 1,
+      "jumps": 1,
+      "trims": 1,
+      "stitches": 1500
+    }
+  },
+  {
+    "type": "island-coil",
+    "solid": {
+      "sections": 1,
+      "jumps": 1,
+      "trims": 1,
+      "stitches": 615
+    },
+    "hole": {
+      "sections": 1,
+      "jumps": 1,
+      "trims": 1,
+      "stitches": 727
+    }
+  },
+  {
+    "type": "square-fill",
+    "solid": {
+      "sections": 1,
+      "jumps": 1,
+      "trims": 1,
+      "stitches": 634
+    },
+    "hole": {
+      "sections": 1,
+      "jumps": 1,
+      "trims": 1,
+      "stitches": 588
+    }
+  },
+  {
+    "type": "double-square",
+    "solid": {
+      "sections": 1,
+      "jumps": 1,
+      "trims": 1,
+      "stitches": 1264
+    },
+    "hole": {
+      "sections": 1,
+      "jumps": 1,
+      "trims": 1,
+      "stitches": 1182
+    }
+  },
+  {
+    "type": "half-cross",
+    "solid": {
+      "sections": 72,
+      "jumps": 72,
+      "trims": 72,
+      "stitches": 637
+    },
+    "hole": {
+      "sections": 62,
+      "jumps": 62,
+      "trims": 62,
+      "stitches": 562
+    }
+  },
+  {
+    "type": "quarter-cross",
+    "solid": {
+      "sections": 1,
+      "jumps": 1,
+      "trims": 1,
+      "stitches": 394
+    },
+    "hole": {
+      "sections": 6,
+      "jumps": 6,
+      "trims": 6,
+      "stitches": 352
+    }
+  },
+  {
+    "type": "petite-cross",
+    "solid": {
+      "sections": 1,
+      "jumps": 1,
+      "trims": 1,
+      "stitches": 2480
+    },
+    "hole": {
+      "sections": 3,
+      "jumps": 3,
+      "trims": 3,
+      "stitches": 2104
+    }
+  },
+  {
+    "type": "double",
+    "solid": {
+      "sections": 1,
+      "jumps": 1,
+      "trims": 1,
+      "stitches": 23
+    },
+    "hole": {
+      "sections": 1,
+      "jumps": 1,
+      "trims": 1,
+      "stitches": 23
+    }
+  },
+  {
+    "type": "stem",
+    "solid": {
+      "sections": 1,
+      "jumps": 1,
+      "trims": 1,
+      "stitches": 32
+    },
+    "hole": {
+      "sections": 1,
+      "jumps": 1,
+      "trims": 1,
+      "stitches": 32
+    }
+  },
+  {
+    "type": "chain",
+    "solid": {
+      "sections": 1,
+      "jumps": 1,
+      "trims": 1,
+      "stitches": 184
+    },
+    "hole": {
+      "sections": 1,
+      "jumps": 1,
+      "trims": 1,
+      "stitches": 184
+    }
+  },
+  {
+    "type": "candlewick",
+    "solid": {
+      "sections": 1,
+      "jumps": 1,
+      "trims": 1,
+      "stitches": 84
+    },
+    "hole": {
+      "sections": 1,
+      "jumps": 1,
+      "trims": 1,
+      "stitches": 84
+    }
+  },
+  {
+    "type": "coil-run",
+    "solid": {
+      "sections": 1,
+      "jumps": 1,
+      "trims": 1,
+      "stitches": 159
+    },
+    "hole": {
+      "sections": 1,
+      "jumps": 1,
+      "trims": 1,
+      "stitches": 159
+    }
+  },
+  {
+    "type": "motif-run",
+    "solid": {
+      "sections": 1,
+      "jumps": 1,
+      "trims": 1,
+      "stitches": 46
+    },
+    "hole": {
+      "sections": 1,
+      "jumps": 1,
+      "trims": 1,
+      "stitches": 46
+    }
+  },
+  {
+    "type": "column-c",
+    "solid": {
+      "sections": 1,
+      "jumps": 1,
+      "trims": 1,
+      "stitches": 146
+    },
+    "hole": {
+      "sections": 1,
+      "jumps": 1,
+      "trims": 1,
+      "stitches": 146
+    }
+  },
+  {
+    "type": "program-split",
+    "solid": {
+      "sections": 1,
+      "jumps": 1,
+      "trims": 1,
+      "stitches": 1044
+    },
+    "hole": {
+      "sections": 1,
+      "jumps": 1,
+      "trims": 1,
+      "stitches": 932
+    }
+  },
+  {
+    "type": "spiral",
+    "solid": {
+      "sections": 1,
+      "jumps": 1,
+      "trims": 1,
+      "stitches": 5671
+    },
+    "hole": {
+      "sections": 1,
+      "jumps": 1,
+      "trims": 1,
+      "stitches": 4850
+    }
+  },
+  {
+    "type": "ripple",
+    "solid": {
+      "sections": 1,
+      "jumps": 1,
+      "trims": 1,
+      "stitches": 5612
+    },
+    "hole": {
+      "sections": 1,
+      "jumps": 1,
+      "trims": 1,
+      "stitches": 4889
+    }
+  },
+  {
+    "type": "meander",
+    "solid": {
+      "sections": 1,
+      "jumps": 1,
+      "trims": 1,
+      "stitches": 1295
+    },
+    "hole": {
+      "sections": 1,
+      "jumps": 1,
+      "trims": 1,
+      "stitches": 1139
+    }
+  },
+  {
+    "type": "coil-fill",
+    "solid": {
+      "sections": 1,
+      "jumps": 1,
+      "trims": 1,
+      "stitches": 877
+    },
+    "hole": {
+      "sections": 1,
+      "jumps": 1,
+      "trims": 1,
+      "stitches": 782
+    }
+  },
+  {
+    "type": "contour",
+    "solid": {
+      "sections": 1,
+      "jumps": 1,
+      "trims": 1,
+      "stitches": 615
+    },
+    "hole": {
+      "sections": 1,
+      "jumps": 1,
+      "trims": 1,
+      "stitches": 735
+    }
+  },
+  {
+    "type": "tatami",
+    "solid": {
+      "sections": 1,
+      "jumps": 1,
+      "trims": 1,
+      "stitches": 650
+    },
+    "hole": {
+      "sections": 1,
+      "jumps": 1,
+      "trims": 1,
+      "stitches": 619
+    }
+  },
+  {
+    "type": "satin",
+    "solid": {
+      "sections": 1,
+      "jumps": 1,
+      "trims": 1,
+      "stitches": 501
+    },
+    "hole": {
+      "sections": 1,
+      "jumps": 1,
+      "trims": 1,
+      "stitches": 507
+    }
+  },
+  {
+    "type": "satin-column",
+    "solid": {
+      "sections": 1,
+      "jumps": 1,
+      "trims": 1,
+      "stitches": 105
+    },
+    "hole": {
+      "sections": 1,
+      "jumps": 1,
+      "trims": 1,
+      "stitches": 105
+    }
+  },
+  {
+    "type": "run",
+    "solid": {
+      "sections": 1,
+      "jumps": 1,
+      "trims": 1,
+      "stitches": 14
+    },
+    "hole": {
+      "sections": 1,
+      "jumps": 1,
+      "trims": 1,
+      "stitches": 14
+    }
+  },
+  {
+    "type": "triple",
+    "solid": {
+      "sections": 1,
+      "jumps": 1,
+      "trims": 1,
+      "stitches": 32
+    },
+    "hole": {
+      "sections": 1,
+      "jumps": 1,
+      "trims": 1,
+      "stitches": 32
+    }
+  },
+  {
+    "type": "back",
+    "solid": {
+      "sections": 1,
+      "jumps": 1,
+      "trims": 1,
+      "stitches": 22
+    },
+    "hole": {
+      "sections": 1,
+      "jumps": 1,
+      "trims": 1,
+      "stitches": 22
+    }
+  },
+  {
+    "type": "zigzag",
+    "solid": {
+      "sections": 1,
+      "jumps": 1,
+      "trims": 1,
+      "stitches": 71
+    },
+    "hole": {
+      "sections": 1,
+      "jumps": 1,
+      "trims": 1,
+      "stitches": 71
+    }
+  },
+  {
+    "type": "blanket",
+    "solid": {
+      "sections": 1,
+      "jumps": 1,
+      "trims": 1,
+      "stitches": 205
+    },
+    "hole": {
+      "sections": 1,
+      "jumps": 1,
+      "trims": 1,
+      "stitches": 205
+    }
+  },
+  {
+    "type": "cross",
+    "solid": {
+      "sections": 67,
+      "jumps": 67,
+      "trims": 67,
+      "stitches": 882
+    },
+    "hole": {
+      "sections": 53,
+      "jumps": 53,
+      "trims": 53,
+      "stitches": 763
+    }
+  },
+  {
+    "type": "motif",
+    "solid": {
+      "sections": 36,
+      "jumps": 36,
+      "trims": 36,
+      "stitches": 324
+    },
+    "hole": {
+      "sections": 31,
+      "jumps": 31,
+      "trims": 31,
+      "stitches": 291
+    }
+  },
+  {
+    "type": "wave",
+    "solid": {
+      "sections": 1,
+      "jumps": 1,
+      "trims": 1,
+      "stitches": 4834
+    },
+    "hole": {
+      "sections": 1,
+      "jumps": 1,
+      "trims": 1,
+      "stitches": 4286
+    }
+  },
+  {
+    "type": "manual",
+    "solid": {
+      "sections": 1,
+      "jumps": 1,
+      "trims": 1,
+      "stitches": 10
+    },
+    "hole": {
+      "sections": 1,
+      "jumps": 1,
+      "trims": 1,
+      "stitches": 10
+    }
+  }
+]

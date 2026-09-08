@@ -404,7 +404,9 @@ export default function Studio() {
   const fileInput = useRef<HTMLInputElement>(null);
   const selected = useMemo(() => {
     const existing = new Set(project.objects.map((object) => object.id));
-    return selectionIds.filter((id) => existing.has(id));
+    return selectionIds.every((id) => existing.has(id))
+      ? selectionIds
+      : selectionIds.filter((id) => existing.has(id));
   }, [project.objects, selectionIds]);
   const chosen = project.objects.filter((o) => selected.includes(o.id)),
     primary = chosen[0],

@@ -13,7 +13,7 @@
     "test": "npm run build && node --test tests/*.test.mjs",
     "lint": "bash scripts/sites-env.sh -- eslint . --ignore-pattern dist --ignore-pattern .next",
     "db:generate": "bash scripts/sites-env.sh -- drizzle-kit generate",
-    "check:types": "tsc --noEmit",
+    "check:types": "node scripts/check-types.mjs",
     "check:embroidery": "node scripts/check-embroidery.mjs",
     "check:workshop": "node scripts/check-workshop.mjs",
     "check:digitizing": "node scripts/check-digitizing.mjs",

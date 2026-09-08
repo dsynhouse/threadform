@@ -145,6 +145,7 @@ type Drag = {
   start: Point;
   pan: Point;
   objects?: EmbroideryObject[];
+  selection?: string[];
   path?: number;
   index?: number;
   handle?: "handleIn" | "handleOut";
@@ -373,6 +374,7 @@ export default function EmbroideryCanvas(props: Props) {
     columnBaseRef = useRef(columnBase),
     toolTransfer = useRef<DigitizingPoint[] | null>(null),
     gestureRef = useRef(gesture);
+  const inputContext = useRef({ tool, selected });
   useLayoutEffect(() => {
     draftRef.current = draft;
     penRef.current = pen;
@@ -428,6 +430,24 @@ export default function EmbroideryCanvas(props: Props) {
     setGesture(null);
   }, [reset]);
   useLayoutEffect(() => {
+    const previous = inputContext.current;
+    inputContext.current = { tool, selected };
+    const sameSelection = (ids: string[]) =>
+      ids.length === selected.length &&
+      ids.every((id, index) => id === selected[index]);
+    if (previous.tool === tool) {
+      if (sameSelection(previous.selected)) return;
+      // Pointer-down selects the object being dragged. That selection update
+      // belongs to this gesture; an external selection change still cancels it.
+      const active = drag.current;
+      if (
+        tool === "select" &&
+        active?.kind === "object" &&
+        active.selection &&
+        sameSelection(active.selection)
+      )
+        return;
+    }
     if (
       continuation.current &&
       (continuation.current.tool !== tool ||
@@ -1739,16 +1759,17 @@ export default function EmbroideryCanvas(props: Props) {
               : selected.includes(object.id)
                 ? selected
                 : ids;
-          onSelect(next);
-          if (!object.locked)
+          if (!object.locked && next.includes(object.id))
             drag.current = {
               kind: "object",
               start: p,
               pan,
+              selection: next,
               objects: project.objects.filter(
-                (o) => next.includes(o.id) && !o.locked,
+                (o) => next.includes(o.id) && !o.locked && o.visible,
               ),
             };
+          onSelect(next);
         }}
         onPointerMove={(event) => {
           const d = drag.current;
@@ -1860,13 +1881,13 @@ export default function EmbroideryCanvas(props: Props) {
             setDraft(next);
             return;
           }
-          if (d.kind === "object")
-            setDraft(
-              d.objects!.map((o) =>
-                moveObject(o, p.x - d.start.x, p.y - d.start.y),
-              ),
+          if (d.kind === "object") {
+            const next = d.objects!.map((o) =>
+              moveObject(o, p.x - d.start.x, p.y - d.start.y),
             );
-          else
+            draftRef.current = next;
+            setDraft(next);
+          } else
             setDraft(
               d.objects!.map((o) => ({
                 ...o,
@@ -1886,11 +1907,20 @@ export default function EmbroideryCanvas(props: Props) {
         onPointerUp={(event) => {
           const d = drag.current;
           if (!d) return;
-          if (draftRef.current.length) {
-            onChange(draftRef.current);
-            setDraft([]);
-          }
           const end = world(event);
+          // Use the released point even when a fast gesture has no final
+          // pointer-move frame. A click without movement must not create undo.
+          const changes =
+            d.kind === "object"
+              ? distance(d.start, end) > 1e-7
+                ? d.objects!.map((object) =>
+                    moveObject(object, end.x - d.start.x, end.y - d.start.y),
+                  )
+                : []
+              : draftRef.current;
+          if (changes.length) onChange(changes);
+          draftRef.current = [];
+          setDraft([]);
           if (
             ["rectangle", "ellipse", "line"].includes(d.kind) &&
             distance(d.start, end) > 0.3

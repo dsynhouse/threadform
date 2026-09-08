@@ -207,7 +207,19 @@ export type SewOut = {
   measuredHeight?: number;
   threadBreaks?: number;
 };
+export type ArtworkLayer = {
+  assetId: string;
+  name: string;
+  /** Affine transform from a unit image rectangle to millimetre coordinates. */
+  transform: [number, number, number, number, number, number];
+  visible: boolean;
+  dimmed: boolean;
+  opacity: number;
+  locked: boolean;
+  cloudReady?: boolean;
+};
 export type Project = {
+  artworkLayer?: ArtworkLayer;
   artwork?: {
     id: string;
     name: string;

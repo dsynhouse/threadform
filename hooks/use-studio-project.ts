@@ -11,6 +11,8 @@ import {
   writeRecovery,
   type SavedProject,
   type PendingSave,
+  cachedArtwork,
+  rememberArtwork,
 } from "@/lib/client/recovery";
 import {
   api,
@@ -300,6 +302,24 @@ export function useStudioProject() {
         // Preserve that work; never carry another verified account's drafts.
         if (localScope) {
           try {
+            if (offlineProject) {
+              const ids = new Set(
+                [
+                  offlineProject.artwork?.id,
+                  offlineProject.artworkLayer?.assetId,
+                ].filter((id): id is string => !!id),
+              );
+              for (const id of ids) {
+                const file = await cachedArtwork(localScope, id);
+                if (!alive.current || request !== scopeRequest) return;
+                if (file) await rememberArtwork(account.namespace, id, file);
+              }
+              if (offlineProject.artworkLayer)
+                offlineProject.artworkLayer = {
+                  ...offlineProject.artworkLayer,
+                  cloudReady: false,
+                };
+            }
             const conversion = await latestConversion(localScope);
             if (!alive.current || request !== scopeRequest) return;
             if (conversion)

@@ -1,6 +1,14 @@
 /** Plain-language help shared by hover, keyboard focus and touch help buttons. */
 const HELP: [RegExp, string][] = [
   [
+    /dimmed opacity/i,
+    "Brightness of the reference image while Dim is enabled. Undim restores its original colours. This never changes embroidery thread colours or machine output.",
+  ],
+  [
+    /artwork (x|y|width|height|rotation)/i,
+    "Position, size or rotation of the original image behind your stitches. Unlock Reference artwork to edit these values. Physical fields follow your mm/in unit setting.",
+  ],
+  [
     /row spacing|stitch spacing|spacing|density/i,
     "Distance between stitch rows in millimetres. Smaller spacing adds stitches and thread coverage; inspect the density view and test on the intended fabric.",
   ],
@@ -26,7 +34,7 @@ const HELP: [RegExp, string][] = [
   ],
   [
     /underlay/i,
-    "Support stitches sewn before the visible fill. Choose centre, edge or zigzag support to suit the shape and fabric.",
+    "Support stitches sewn before the visible fill. Combine centre, edge, zigzag, double zigzag and tatami layers in sewing order to suit the shape and fabric.",
   ],
   [
     /cross grid/i,

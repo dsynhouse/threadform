@@ -10,6 +10,7 @@ for (const suite of [
   "workspace",
   "workflow",
   "interop",
+  "drawing",
   "supabase",
   "transfers",
 ]) {

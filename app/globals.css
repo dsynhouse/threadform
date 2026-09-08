@@ -4409,3 +4409,101 @@ body {
   font-size: 11px;
   color: var(--muted-foreground);
 }
+
+/* One explicit scroll owner keeps every conversion control reachable at every breakpoint. */
+.studio[data-workspace="convert"] {
+  height: 100dvh;
+  min-height: 0;
+  overflow-y: auto;
+}
+.workspace-page:not([hidden]) {
+  display: block;
+  flex: 1 1 0;
+  min-height: 160px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior-y: contain;
+  scrollbar-gutter: stable;
+  -webkit-overflow-scrolling: touch;
+}
+.workspace-page > .conversion-workspace {
+  height: auto;
+  min-height: min-content;
+  flex: none;
+  overflow: visible;
+  margin: 0 auto;
+  padding-bottom: max(48px, env(safe-area-inset-bottom));
+}
+
+.artwork-layer-panel {
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--border);
+}
+.artwork-layer-panel summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+}
+.artwork-layer-panel summary::after {
+  content: "+";
+  margin-left: auto;
+}
+.artwork-layer-panel[open] summary::after {
+  content: "−";
+}
+.artwork-layer-content {
+  padding: 0 16px 14px;
+  display: grid;
+  gap: 12px;
+  max-height: 42dvh;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+.artwork-layer-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+}
+.artwork-transform-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.artwork-layer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.artwork-layer-content .help-text {
+  margin: 0;
+  font-size: 11px;
+}
+.canvas-artwork-status {
+  position: absolute;
+  left: 150px;
+  right: 16px;
+  top: 30px;
+  width: fit-content;
+  max-width: calc(100% - 166px);
+  padding: 6px 10px;
+  background: #fff6e8;
+  color: #77531a;
+  border: 1px solid #ead7b8;
+  border-radius: 6px;
+  font-size: 11px;
+  pointer-events: none;
+}
+.sketch-options {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.sketch-options input {
+  width: 110px;
+}

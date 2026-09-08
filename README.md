@@ -2,7 +2,7 @@
 
 A browser embroidery studio for DSYN House: editable vector artwork, manual and automatic digitizing, stitch inspection, optimization, approval PDFs and native DST/PES/JEF/EXP output.
 
-**Release 0.10 is implemented software awaiting live-service and physical-machine qualification.** See [the release checklist and interoperability roadmap](docs/INTEROPERABILITY.md). Algorithm tests do not establish Wilcom object recognition or physical sewing quality.
+**Release 0.11 is implemented software awaiting live-service and physical-machine qualification.** See [the release checklist and interoperability roadmap](docs/INTEROPERABILITY.md). Algorithm tests do not establish Wilcom object recognition or physical sewing quality.
 
 ## Independent deployment
 
@@ -22,6 +22,15 @@ npm run start:standalone
 ```
 
 The existing Sites deployment remains supported through its separate runtime adapter, D1/R2 bindings, Vite configuration and `npm run build`. Vercel uses `build:vercel`; it does not depend on Sites or a ChatGPT login.
+
+## What changed in 0.11
+
+- Convert uses one dedicated scroll area with short-window height handling, keyboard focus and retained conversion state.
+- **Objects → Reference artwork** inserts an original image without conversion. Hide/show, dim/undim, adjustable opacity, position locking, mm/in placement and rotation remain editable and undoable.
+- Reference images are cached with their owner's local recovery state and uploaded privately when Supabase is configured. Bitmap conversion attaches the original behind the vectors; a failed cloud upload preserves local work and offers retry.
+- Column A/B/C have live footprints and next-point guides. Backspace returns through captured edges/width stages; Escape clears Column C correctly. Alt temporarily bypasses snap.
+- Freehand sketching uses coalesced pointer samples, adjustable smoothing and exact released endpoints. Finishing a drawing leaves its tool ready for the next object.
+- Supabase client versions are pinned. The supplied project URL is prefilled in `.env.example`; the publishable key and live provider activation remain required.
 
 ## What changed in 0.10
 

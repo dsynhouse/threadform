@@ -35,8 +35,12 @@ import {
   latestConversion,
   writeConversion,
   type ConversionDraft,
+  rememberArtwork,
+  cachedArtwork,
 } from "@/lib/client/recovery";
+import { attachSourceLayer } from "@/lib/embroidery/artwork-layer";
 import { uploadArtwork, openArtwork } from "@/lib/client/artwork-storage";
+import { toast } from "sonner";
 export default function Converter({
   incoming,
   onApply,
@@ -360,21 +364,38 @@ export default function Converter({
   }
   async function apply() {
     if (!elements || !file || uploading) return;
-    if (!namespace.startsWith("account:")) {
-      onApply({ ...elements, units: measure.unit });
-      return;
-    }
     const id = generation.current;
+    const sourceAssetId = assetId.current;
     setUploading(true);
     setError("");
     try {
+      await rememberArtwork(namespace, sourceAssetId, file);
+      const account = namespace.startsWith("account:");
+      let cloudReady = false;
+      if (account) {
+        try {
+          await uploadArtwork(file, sourceAssetId, namespace);
+          cloudReady = true;
+        } catch {
+          if (id === generation.current)
+            toast.warning(
+              "Vectors are ready. The original is saved on this device; retry its cloud upload in Reference artwork.",
+            );
+        }
+      }
       const artwork = {
-        id: await uploadArtwork(file, assetId.current, namespace),
+        id: sourceAssetId,
         name: file.name,
         options: { ...options, widthMM: elements.width },
       };
-      if (id === generation.current)
-        onApply({ ...elements, units: measure.unit, artwork });
+      if (id === generation.current) {
+        const next = { ...elements, units: measure.unit, artwork };
+        onApply(
+          isSVG
+            ? next
+            : attachSourceLayer(next, artwork.id, file.name, cloudReady),
+        );
+      }
     } catch (e) {
       setError(errorMessage(e));
     } finally {
@@ -382,7 +403,7 @@ export default function Converter({
     }
   }
   return (
-    <section className="feature-workspace">
+    <section className="feature-workspace conversion-workspace">
       <div className="feature-heading">
         <div>
           <span className="eyebrow">Artwork preparation</span>
@@ -415,7 +436,15 @@ export default function Converter({
               return;
             setUploading(true);
             try {
-              const sourceFile = await openArtwork(original.id);
+              const sourceFile =
+                (await cachedArtwork(namespace, original.id)) ??
+                (namespace.startsWith("account:")
+                  ? await openArtwork(original.id)
+                  : null);
+              if (!sourceFile)
+                throw new Error(
+                  "Reattach the original artwork to reopen this conversion on this device.",
+                );
               if (recoveryDraft.current)
                 await writeConversion(recoveryDraft.current);
               restoredFile.current = sourceFile;
